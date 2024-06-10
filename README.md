@@ -1,9 +1,26 @@
 
 # Unreal Engine Substrate Material for Apex Legends resource
 
-A repository for an Unreal Engine plugin containing materials for extracted Apex Legends assets and an auto texture mapping tool.
+A repository for an Unreal Engine plugin containing Substrate Materials for extracted Apex Legends resources and an auto texture mapping tool.
 
 (Also includes a Post Process Sharpening Material.)
+
+# ***Important Notice***
+
+This project and plugin use ***Substrate***, so you must enable Substrate.
+Substrate is an experimental feature that completely replaces the existing Material system but does not guarantee compatibility.
+Therefore, it is recommended not to use this plugin in ongoing projects.
+If you really want to use it in an ongoing project, duplicate the project first.
+Additionally, enable Substrate before adding this plugin.
+
+Substrate can be enabled in the ```Project Settings``` under **Engine->Rendering->Substrate**.
+
+![ss](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/1a6206c9-3d8f-4453-8745-579a94baf70a)
+
+Note that Substrate is currently incompatible with hardware ray tracing.
+If hardware ray tracing is enabled, rendering issues may occur.
+Therefore, you should use Lumen for now.
+Substrate is expected to support hardware ray tracing through Lumen in the future.
 
 ## About this repository's UE project
 
@@ -11,7 +28,7 @@ This project file includes my PostProcessVolume setup and the plugin code.
 
 You can access both the plugin's contents and my PostProcessVolume setup by cloning this repository.
 
-If you only want the plugin, it's recommended to download the zipped plugin file from the [release page](https://github.com/Mstone8370/UE-Material-for-ApexLegends-Asset/releases).
+If you only want the plugin, it's recommended to download the zipped plugin file from the [release page](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/releases).
 
 This project's Unreal Engine version is ```5.4```
 
@@ -21,7 +38,7 @@ This project's Unreal Engine version is ```5.4```
 
   **Apex Legends Material** plugin is disabled by default, so you should enable it.
 
-![plugin](https://github.com/Mstone8370/UE-Material-for-ApexLegends-Asset/assets/43489974/6ad1df8a-db95-47dd-9fcb-291e45837f59)
+![plugin](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/a888f091-c736-47b0-a2ea-1e09f71d250a)
 
 * By downloading the plugin from release page:
 
@@ -30,6 +47,10 @@ This project's Unreal Engine version is ```5.4```
   If the ```Plugins``` folder doesn't exist, create a new one.
 
   After placing the **ApexLegendsMaterial** folder in your project's ```Plugins``` folder, make sure to enable the plugin.
+
+  - As mentioned above, this plugin uses ***Substrate***, which is an experimental feature that completely replaces the existing Material system but does not guarantee compatibility.
+
+    Please be cautious before enabling this plugin, and ensure that Substrate is enabled in the project settings before activating the plugin.
 
 ## Usage
 
@@ -43,7 +64,7 @@ This project's Unreal Engine version is ```5.4```
 
   - For those not using the Auto Texture Mapping tool: Make sure to uncheck sRGB for the AO, cavity, gloss, and alpha mask textures in texture setting. And set the normal map's ```Texture Group``` to ```WorldNormalMap``` and ```Compression Settings``` to ```Normal map```.
 
-![mat_select](https://github.com/Mstone8370/UE-Material-for-ApexLegends-Asset/assets/43489974/c1149d34-2aa7-4d03-accc-1f872c4fe915)
+![mat_select](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/3c4a90af-acc0-468a-80f4-75fc126aeee8)
 
 ---
 
@@ -85,7 +106,7 @@ This project's Unreal Engine version is ```5.4```
 
 * The settings for the Auto Texture Mapping tool can be changed in the ```BP_AutoTextureMapping``` Blueprint located in ```Plugins/ApexLegendsMaterial/Util```.
 
-![aau](https://github.com/Mstone8370/UE-Material-for-ApexLegends-Asset/assets/43489974/185bb79f-d32a-4dc5-a603-66cad21ff20e)
+![ATM_settings](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/c543f9ba-ffcb-4e26-ba00-ac001c0b4409)
 
 * You can watch the demo of my workflow.
 
@@ -107,7 +128,7 @@ This project's Unreal Engine version is ```5.4```
 
   - Artiface example
 
-![artifact](https://github.com/Mstone8370/UE-Material-for-ApexLegends-Asset/assets/43489974/757a7d05-4e38-4c2f-8fbc-efbf49eb74a6)
+![opa_prev](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/a55aa2c3-1ff2-4310-b020-999993b83108)
 
   Alpha channel
   
@@ -119,7 +140,7 @@ This project's Unreal Engine version is ```5.4```
 
   Result
 
-![result](https://github.com/Mstone8370/UE-Material-for-ApexLegends-Asset/assets/43489974/e056def3-0a06-490a-9fcb-17fa704e3056)
+![opa_aft](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/3b94f7a9-a4d5-49ed-a4f1-63431c71c9ec)
 
 * Hair Color
 
@@ -127,7 +148,7 @@ This project's Unreal Engine version is ```5.4```
 
   - Hair example
 
-![hair](https://github.com/Mstone8370/UE-Material-for-ApexLegends-Asset/assets/43489974/cd517e67-cc77-47ca-a74b-f7a98e83a6e1)
+![cav_prev](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/b89f178f-0919-45b5-a988-4c2dc5c7f33f)
 
 ![cavity](https://github.com/Mstone8370/UE-Material-for-ApexLegends-Asset/assets/43489974/cb2b18f5-74a9-4ec8-b833-97b3b2865d42)
 
@@ -137,13 +158,13 @@ This project's Unreal Engine version is ```5.4```
 
   Result
 
-![hair_result](https://github.com/Mstone8370/UE-Material-for-ApexLegends-Asset/assets/43489974/9f5a5f6f-4d75-41da-b121-780601ec09b2)
+![cav_aft](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/3ef7abac-87e0-4c11-8790-d50dec59a91a)
 
 ## Auto Texture Mapping tool issue
 
   If the Auto Texture Mapping tool is not working and error logs are printed in the ```Output Log```, the reason might be an old reference issue.
 
-  Try deleting all Material Instances connected to the Skeletal Mesh, and in the content browser, right-click the current folder and select ```Fix Up Redirectors``` to fix the old references.
+  Try deleting all Material Instances connected to the Skeletal Mesh, and in the content browser, right-click the current folder and select ```Update Redirector References``` to fix the old references.
 
 ## Experimental Feature
 
@@ -161,5 +182,5 @@ Please note that these examples show the most pronounced effect.
 
 The image on the left is without anisotropy (isotropic), right is anisotropy.
 
-![aniso_diff](https://github.com/Mstone8370/UE-Material-for-ApexLegends-Asset/assets/43489974/cfdd9167-eaed-413e-9620-b305fc1c9339)
+![aniso_comp](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/534dc91d-40d3-4a31-b1ea-cb9ab27270fa)
 
