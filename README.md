@@ -101,7 +101,7 @@ This project's Unreal Engine version is ```5.4```
 
 * Auto Texture Mapping tool with **Recolor Skins**
 
-  Before running the tool, open the Skeletal Mesh and change the ```Slot Name```s of the materials to match the names of recolor skins.
+  Before running the tool, open the Skeletal Mesh and change the ```Slot Name```s of the material slots to match the names of recolor skins.
 
   For example, if the ```Slot Name``` is ```wraith_lgnd_v19_voidwalker_body```, recolor skin's names will be ```wraith_[recolor skin name]_[parts]``` like ```wraith_lgnd_v19_voidwalker_rc01_gear``` and ```wraith_lgnd_v19_voidwalker_rt01_helmet```.
 
