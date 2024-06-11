@@ -25,7 +25,7 @@ If hardware ray tracing is enabled, rendering issues may occur.
 Therefore, you should use Lumen for now.
 Substrate is expected to support hardware ray tracing through Lumen in the future.
 
-## About this repository's UE project
+# About this repository's UE project
 
 This project file includes my PostProcessVolume setup and the plugin code.
 
@@ -35,15 +35,15 @@ If you only want the plugin, it's recommended to download the zipped plugin file
 
 This project's Unreal Engine version is ```5.4```
 
-## Installation
+# Installation
 
-* By clonning this repository:
+## By clonning this repository:
 
   **Apex Legends Material** plugin is disabled by default, so you should enable it.
 
 ![plugin](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/a888f091-c736-47b0-a2ea-1e09f71d250a)
 
-* By downloading the plugin from release page:
+## By downloading the plugin from release page:
 
   Extract the zip file and place the **ApexLegendsMaterial** folder inside your project's ```Plugins``` folder.
 
@@ -55,7 +55,7 @@ This project's Unreal Engine version is ```5.4```
 
     Please be cautious before enabling this plugin, and ensure that Substrate is enabled in the project settings before activating the plugin.
 
-## Usage
+# Usage
 
 * Material
 
@@ -121,9 +121,9 @@ This project's Unreal Engine version is ```5.4```
 
   [Unreal Engine Sequencer work with animations](https://youtu.be/UpkA9dgYGuA)
 
-## Issues
+# Issues
 
-### Material issues
+## Material issues
 
 * Pixelated Artifacts
 
@@ -185,7 +185,17 @@ This project's Unreal Engine version is ```5.4```
 
   Try deleting all Material Instances connected to the Skeletal Mesh, and in the content browser, right-click the current folder and select ```Update Redirector References``` to fix the old references.
 
-## Experimental Feature
+## Movie Render Queue issue
+
+  When using the Movie Render Queue, there could be an issue where shaders are compiled for every frame.
+
+  This issue can be caused by materials that fail to compile, and Substrate can be the cause of this issue.
+
+  If you find logs in the ```[project path]/Saved/Logs``` folder indicating that material compilation has failed, you will need to fix those materials.
+
+  If those problematic materials belong to an unused plugin, simply disabling that plugin may resolve the issue.
+
+# Experimental Feature
 
 The ```M_Master``` material has an **Anisotropy** option.
 
