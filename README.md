@@ -82,7 +82,7 @@ This project's Unreal Engine version is ```5.4```
 
 2. Create a folder in directory where Skeletal Mesh exists, and import all textures to that folder.
 
-   This tool will search for a folder named ```Textures``` by default, but you can designate another folder if you are texturing recolor skins.
+   This tool will search for a folder named ```Textures``` by default, but you can designate another folder name.
 
 ![texturefoldername](https://github.com/Mstone8370/UE-Material-for-ApexLegends-Asset/assets/43489974/d52d34d1-3d51-4cb2-9445-a9e3b1aa81b5)
 
@@ -104,9 +104,13 @@ This project's Unreal Engine version is ```5.4```
 
 ![recolor](https://github.com/Mstone8370/UE-Material-for-ApexLegends-Asset/assets/43489974/96de7184-26bd-40c5-8daa-a06da53c5595)
 
+---
+
 * The settings for the Auto Texture Mapping tool can be changed in the ```BP_AutoTextureMapping``` Blueprint located in ```Plugins/ApexLegendsMaterial/Util```.
 
 ![ATM_settings](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/c543f9ba-ffcb-4e26-ba00-ac001c0b4409)
+
+---
 
 * You can watch the demo of my workflow.
 
@@ -126,7 +130,7 @@ This project's Unreal Engine version is ```5.4```
 
   Therefore, try unchecking the ```AlbedoAlphaAsOpacityMask``` setting in the Material Instance.
 
-  - Artiface example
+  - Artifact example
 
 ![opa_prev](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/a55aa2c3-1ff2-4310-b020-999993b83108)
 
@@ -160,6 +164,18 @@ This project's Unreal Engine version is ```5.4```
 
 ![cav_aft](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/3ef7abac-87e0-4c11-8790-d50dec59a91a)
 
+* Translucency Sorting Issue
+
+  When a single mesh has multiple translucent materials, priority sorting may not work correctly, causing the translucent material in the back to cover the one in the front.
+
+  In this case, enable the ```Enable Order Independent Transparency (Experimental)``` option in ```Project Settings``` under **Engine->Rendering->Translucency**.
+
+![translucency](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/9b71466d-fb79-41dc-ad16-056e3c63d8f7)
+
+  In the image below, the left side shows an example with sorting issues, and the right side shows the issue resolved using this option.
+
+![translucent_cmp](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/96ec8971-6cd0-4a15-aaf7-70589c662b01)
+
 ## Auto Texture Mapping tool issue
 
   If the Auto Texture Mapping tool is not working and error logs are printed in the ```Output Log```, the reason might be an old reference issue.
@@ -170,9 +186,9 @@ This project's Unreal Engine version is ```5.4```
 
 The ```M_Master``` material has an **Anisotropy** option.
 
-Some resources have all the necessary informations for anisotropy, resulting in much better outcomes when applied, but in some cases, the necessary information is lacking.
+Some resources have all the necessary information for anisotropy, resulting in much better outcomes when applied, but in some cases, the necessary information is not enough.
 
-Since anisotropy typically does not have a significant impact, it is disabled by default.
+Anisotropy enhances detail, but its effect is subtle, so it is disabled by default.
 
 However, if you want to use it, you can enable it in the **Material Instance** settings, and in some cases, you might need to directly modify the ```M_Master``` Material.
 
