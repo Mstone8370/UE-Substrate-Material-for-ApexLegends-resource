@@ -151,15 +151,13 @@ This project's Unreal Engine version is ```5.4```
 
 * Hair Color
 
-  If the hair color appears as too dark, turn off ```CavityAffectAlbedo``` checkbox or lower the ```CavityPow``` value in the Material Instance.
+  If the hair color appears as too dark, lower the ```CavityPow``` value in the Material Instance.
 
   - Hair example
 
 ![cav_prev](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/b89f178f-0919-45b5-a988-4c2dc5c7f33f)
 
-![cavity](https://github.com/Mstone8370/UE-Material-for-ApexLegends-Asset/assets/43489974/cb2b18f5-74a9-4ec8-b833-97b3b2865d42)
-
-  or
+  CavityPow parameter in Material Instance
 
 ![cavity_val](https://github.com/Mstone8370/UE-Material-for-ApexLegends-Asset/assets/43489974/bcae8eeb-f033-4854-a12d-2dab2dfd12c2)
 
