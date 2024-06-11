@@ -95,7 +95,7 @@ This project's Unreal Engine version is ```5.4```
 
 ![right-click](https://github.com/Mstone8370/UE-Material-for-ApexLegends-Asset/assets/43489974/23e92291-fe78-489c-83ee-39d6d0e8d021)
 
-![demo_gif](https://github.com/Mstone8370/UE-Material-for-ApexLegends-Asset/assets/43489974/c9824a30-231f-4f86-96c0-5ad237994dca)
+![demo](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/c9fc55e1-ce82-434d-aee9-49e534d86c98)
 
 ---
 
