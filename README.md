@@ -1,5 +1,7 @@
 ![sample](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/e134bd7b-f15d-433d-bec3-ca2ca31217d1)
 
+[Sample gif (7MB)](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/1aa2e129-bd1f-4f88-92b8-50cace6838a2)
+
 # Unreal Engine Substrate Material for Apex Legends resource
 
 A repository for an Unreal Engine plugin containing Substrate Materials for extracted Apex Legends resources and an auto texture mapping tool.
