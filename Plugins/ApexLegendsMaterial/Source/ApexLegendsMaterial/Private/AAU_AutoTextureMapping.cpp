@@ -330,6 +330,10 @@ void UAAU_AutoTextureMapping::MapTexturesToMaterial(TMap<FString, UMaterialInsta
         {
             SetMaterialParamValue(TargetMaterialInstance, FName("AlbedoAlphaAsOpacityMask"), FMaterialParameterValue(false));
         }
+        if (ParamName->IsEqual(FName("ScatterThickness")))
+        {
+            SetMaterialParamValue(TargetMaterialInstance, FName("Subsurface"), FMaterialParameterValue(true));
+        }
         SetMaterialParamValue(TargetMaterialInstance, *ParamName, FMaterialParameterValue(Texture));
     }
 
