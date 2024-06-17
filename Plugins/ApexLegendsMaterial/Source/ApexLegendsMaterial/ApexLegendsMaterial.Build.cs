@@ -41,8 +41,13 @@ public class ApexLegendsMaterial : ModuleRules
 				"SlateCore",
 				// ... add private dependencies that you statically link with here ...	
 				"Blutility",
-				"AssetRegistry"
-			}
+				"AssetRegistry",
+                "ToolMenus",
+                "UMG",
+                "UMGEditor",
+				"UnrealEd",
+				"Projects"
+            }
 			);
 		
 		
