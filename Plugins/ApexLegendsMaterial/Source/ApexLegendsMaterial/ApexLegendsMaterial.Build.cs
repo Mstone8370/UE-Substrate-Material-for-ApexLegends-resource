@@ -42,12 +42,12 @@ public class ApexLegendsMaterial : ModuleRules
 				// ... add private dependencies that you statically link with here ...	
 				"Blutility",
 				"AssetRegistry",
-                "ToolMenus",
-                "UMG",
-                "UMGEditor",
+				"ToolMenus",
+				"UMG",
+				"UMGEditor",
 				"UnrealEd",
 				"Projects"
-            }
+			}
 			);
 		
 		

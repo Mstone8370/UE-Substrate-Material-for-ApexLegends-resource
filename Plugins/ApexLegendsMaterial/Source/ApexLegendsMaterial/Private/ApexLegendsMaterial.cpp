@@ -72,7 +72,6 @@ void FApexLegendsMaterialModule::RegisterMenus()
 
 void FApexLegendsMaterialModule::PluginButtonClicked()
 {
-    UE_LOG(LogTemp, Log, TEXT("MyCustomButton triggered!!, %s"), *IPluginManager::Get().FindPlugin("ApexLegendsMaterial")->GetBaseDir());
     FString Path = "/ApexLegendsMaterial/Util/test";
     UEditorUtilityWidgetBlueprint* EUW = LoadObject<UEditorUtilityWidgetBlueprint>(nullptr, *Path);
     if (EUW)
