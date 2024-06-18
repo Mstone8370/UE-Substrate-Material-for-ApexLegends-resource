@@ -30,6 +30,7 @@ void FApexLegendsMaterialModule::StartupModule()
         FCanExecuteAction());
 
     UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FApexLegendsMaterialModule::RegisterMenus));
+    UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FApexLegendsMaterialModule::LoadUtilityBlueprint));
 }
 
 void FApexLegendsMaterialModule::ShutdownModule()
@@ -59,9 +60,9 @@ void FApexLegendsMaterialModule::RegisterMenus()
     }
 
     {
-        UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu("LevelEditor.LevelEditorToolBar.PlayToolBar");  // "LevelEditor.LevelEditorToolBar.User"
+        UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu("LevelEditor.LevelEditorToolBar.User");  // "LevelEditor.LevelEditorToolBar.User"
         {
-            FToolMenuSection& Section = ToolbarMenu->FindOrAddSection("PluginTools");
+            FToolMenuSection& Section = ToolbarMenu->FindOrAddSection("ApexLegendsTool");
             {
                 FToolMenuEntry& Entry = Section.AddEntry(FToolMenuEntry::InitToolBarButton(FApexLegendsMaterialCommands::Get().PluginAction));
                 Entry.SetCommandList(PluginCommands);
@@ -72,13 +73,20 @@ void FApexLegendsMaterialModule::RegisterMenus()
 
 void FApexLegendsMaterialModule::PluginButtonClicked()
 {
-    FString Path = "/ApexLegendsMaterial/Util/test";
+    const FString Path = "/ApexLegendsMaterial/Util/Widgets/ApexLegendsTool";
     UEditorUtilityWidgetBlueprint* EUW = LoadObject<UEditorUtilityWidgetBlueprint>(nullptr, *Path);
     if (EUW)
     {
         UEditorUtilitySubsystem* EditorUtilitySubsystem = GEditor->GetEditorSubsystem<UEditorUtilitySubsystem>();
         EditorUtilitySubsystem->SpawnAndRegisterTab(EUW);
     }
+}
+
+void FApexLegendsMaterialModule::LoadUtilityBlueprint()
+{
+    // Load Util
+    const FString Path = "/ApexLegendsMaterial/Util/BP_AutoTextureMapping";
+    StaticLoadObject(UObject::StaticClass(), nullptr, *Path);
 }
 
 #undef LOCTEXT_NAMESPACE

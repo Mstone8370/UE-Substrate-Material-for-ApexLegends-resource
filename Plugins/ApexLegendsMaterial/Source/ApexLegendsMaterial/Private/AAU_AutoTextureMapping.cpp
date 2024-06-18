@@ -60,17 +60,60 @@ UAAU_AutoTextureMapping::UAAU_AutoTextureMapping()
     LinearTextureTypes.Add(TEXT("opa"));
 }
 
+void UAAU_AutoTextureMapping::DisconnectAllMaterials()
+{
+    TArray<FAssetData> SelectedAssetDatas = UEditorUtilityLibrary::GetSelectedAssetData();
+    for (FAssetData& SelectedAssetData : SelectedAssetDatas)
+    {
+        UObject* SelectObject = SelectedAssetData.GetAsset();
+        if (!SelectObject || !(SelectObject->IsA<USkeletalMesh>() || SelectObject->IsA<UStaticMesh>()))
+        {
+            continue;
+        }
+
+        if (USkeletalMesh* SK = Cast<USkeletalMesh>(SelectObject))
+        {
+            TArray<FSkeletalMaterial>& Materials = SK->GetMaterials();
+            for (FSkeletalMaterial& Material : Materials)
+            {
+                Material.MaterialInterface = nullptr;
+            }
+        }
+        if (UStaticMesh* SM = Cast<UStaticMesh>(SelectObject))
+        {
+            TArray<FStaticMaterial>& Materials = SM->GetStaticMaterials();
+            for (FStaticMaterial& Material : Materials)
+            {
+                Material.MaterialInterface = nullptr;
+            }
+        }
+
+        // Update Object
+        SelectObject->PostEditChange();
+
+        const FString ObjectPath = SelectObject->GetPathName();
+        const FString FilePath = FPaths::GetBaseFilename(ObjectPath, false);
+        UEditorAssetLibrary::SaveAsset(FilePath, false);
+    }
+}
+
 void UAAU_AutoTextureMapping::AutoTextureMapping(FString TextureFolderNameOverride)
 {
     // Check Master Material
-    MasterMaterial = MasterMaterialOverride;
     if (!MasterMaterial)
     {
-        MasterMaterial = Cast<UMaterialInterface>(UEditorAssetLibrary::LoadAsset(MasterMaterialPath));
-        if (!MasterMaterial)
+        if (MasterMaterialOverride)
         {
-            UE_LOG(LogTemp, Error, TEXT("[AutoTextureMapping] Failed to load Master Material"));
-            return;
+            MasterMaterial = MasterMaterialOverride;
+        }
+        else
+        {
+            MasterMaterial = Cast<UMaterialInterface>(UEditorAssetLibrary::LoadAsset(MasterMaterialPath));
+            if (!MasterMaterial)
+            {
+                UE_LOG(LogTemp, Error, TEXT("[AutoTextureMapping] Failed to load Master Material"));
+                return;
+            }
         }
     }
 
@@ -78,13 +121,13 @@ void UAAU_AutoTextureMapping::AutoTextureMapping(FString TextureFolderNameOverri
     TArray<FAssetData> SelectedAssetDatas = UEditorUtilityLibrary::GetSelectedAssetData();
     for (FAssetData& SelectedAssetData : SelectedAssetDatas)
     {
-        UObject* SelectedObject = SelectedAssetData.GetAsset();
-        if (!(SelectedObject->IsA<USkeletalMesh>() || SelectedObject->IsA<UStaticMesh>()))
+        UObject* SelectObject = SelectedAssetData.GetAsset();
+        if (!SelectObject || !(SelectObject->IsA<USkeletalMesh>() || SelectObject->IsA<UStaticMesh>()))
         {
             continue;
         }
 
-        const FString SelectedAssetObjectPath = SelectedAssetData.GetObjectPathString();
+        const FString SelectedAssetObjectPath = SelectObject->GetPathName();
         const FString AssetFolderPath = FPaths::GetPath(SelectedAssetObjectPath);
         const FString TextureFolderName = TextureFolderNameOverride.Len() > 0 ? TextureFolderNameOverride : DefaultTextureFolderName;
         const FString TextureFolderPath = FPaths::ConvertRelativePathToFull(AssetFolderPath, TextureFolderName);
@@ -92,7 +135,7 @@ void UAAU_AutoTextureMapping::AutoTextureMapping(FString TextureFolderNameOverri
         TMap<FString, UMaterialInstance*> MaterialNameMap;
 
         // Set Skeletal Mesh's materials
-        if (!SetMaterialInstances(SelectedObject, MaterialNameMap))
+        if (!SetMaterialInstances(SelectObject, MaterialNameMap))
         {
             continue;
         }

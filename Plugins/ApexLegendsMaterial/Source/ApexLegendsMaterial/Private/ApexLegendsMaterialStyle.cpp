@@ -43,7 +43,7 @@ TSharedRef< FSlateStyleSet > FApexLegendsMaterialStyle::Create()
 	TSharedRef< FSlateStyleSet > Style = MakeShareable(new FSlateStyleSet("ApexLegendsMaterialStyle"));
 	Style->SetContentRoot(IPluginManager::Get().FindPlugin("ApexLegendsMaterial")->GetBaseDir() / TEXT("Resources"));
 
-	Style->Set("ApexLegendsMaterial.PluginAction", new IMAGE_BRUSH(TEXT("Temp"), Icon20x20));
+	Style->Set("ApexLegendsMaterial.PluginAction", new IMAGE_BRUSH(TEXT("Icon"), Icon20x20));
 	return Style;
 }
 

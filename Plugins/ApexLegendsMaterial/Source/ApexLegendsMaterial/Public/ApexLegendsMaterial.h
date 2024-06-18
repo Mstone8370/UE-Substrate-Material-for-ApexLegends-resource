@@ -23,6 +23,7 @@ private:
 
 	void RegisterMenus();
 
+	void LoadUtilityBlueprint();
 
 private:
 	TSharedPtr<class FUICommandList> PluginCommands;
