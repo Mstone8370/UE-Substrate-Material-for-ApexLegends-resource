@@ -17,10 +17,10 @@ class APEXLEGENDSMATERIAL_API UAAU_AutoTextureMapping : public UAssetActionUtili
 public:
 	UAAU_AutoTextureMapping();
 
-	UFUNCTION(CallInEditor, Category = "Apex Legends Material", meta = (DisplayName = "Disconnect All Materials"))
+	UFUNCTION(CallInEditor, Category = "Apex Legends Tool", meta = (DisplayName = "Disconnect All Materials"))
 	void DisconnectAllMaterials();
 
-	UFUNCTION(CallInEditor, Category = "Apex Legends Material", meta = (DisplayName = "Auto Texture Mapping"))
+	UFUNCTION(CallInEditor, Category = "Apex Legends Tool", meta = (DisplayName = "Auto Texture Mapping"))
 	void AutoTextureMapping(UPARAM(DisplayName = "Custom Texture Folder") FString TextureFolderNameOverride);
 
 protected:

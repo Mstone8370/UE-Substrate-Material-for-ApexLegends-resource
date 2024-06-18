@@ -6,7 +6,7 @@
 
 void FApexLegendsMaterialCommands::RegisterCommands()
 {
-	UI_COMMAND(PluginAction, "ApexLegendsMaterial", "Execute ApexLegendsMaterial action", EUserInterfaceActionType::Button, FInputChord());
+	UI_COMMAND(PluginAction, "Apex Legends Tool", "Open Apex Legends Tool Widget", EUserInterfaceActionType::Button, FInputChord());
 }
 
 #undef LOCTEXT_NAMESPACE
