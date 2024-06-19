@@ -3,6 +3,8 @@
 
 #include "EUW_EditorWidget.h"
 
+#include "AAU_AutoTextureMapping.h"
+
 #include "Engine/SkinnedAssetCommon.h"
 #include "EditorAssetLibrary.h"
 
@@ -140,4 +142,29 @@ void UEUW_EditorWidget::ChangeSlotName_Internal(FName& MatSlotName, FString NewS
     {
         FailedMap.Add(PrevName, MatSlotName);
     }
+}
+
+void UEUW_EditorWidget::AutoTextureMapping(FString TextureFolderName)
+{
+    if (GetAAU())
+    {
+        GetAAU()->AutoTextureMapping(TextureFolderName);
+    }
+}
+
+void UEUW_EditorWidget::DisconnectAllMaterials()
+{
+    if (GetAAU())
+    {
+        GetAAU()->DisconnectAllMaterials();
+    }
+}
+
+UAAU_AutoTextureMapping* UEUW_EditorWidget::GetAAU()
+{
+    if (!AAU)
+    {
+        AAU = NewObject<UAAU_AutoTextureMapping>(GetTransientPackage(), AAU_Class);
+    }
+    return AAU;
 }

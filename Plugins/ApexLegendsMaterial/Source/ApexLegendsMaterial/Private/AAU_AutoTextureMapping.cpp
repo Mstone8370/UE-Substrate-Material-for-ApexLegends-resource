@@ -322,7 +322,7 @@ UMaterialInstanceConstant* UAAU_AutoTextureMapping::CreateMaterialInstance(UMate
     return MaterialInstanceAsset;
 }
 
-void UAAU_AutoTextureMapping::GetTexturePaths(TSet<UObject*> Objects, const FString& TextureFolderName, TSet<FString> OutPaths)
+void UAAU_AutoTextureMapping::GetTexturePaths(TSet<UObject*> Objects, const FString& TextureFolderName, TSet<FString>& OutPaths)
 {
     UObjectLibrary* ObjectLibrary = UObjectLibrary::CreateLibrary(nullptr, false, GIsEditor);
     ObjectLibrary->bRecursivePaths = true;
@@ -348,7 +348,7 @@ void UAAU_AutoTextureMapping::GetTexturePaths(TSet<UObject*> Objects, const FStr
     }
 }
 
-void UAAU_AutoTextureMapping::MapTexturesToMaterial(TMap<FString, TArray<UMaterialInstance*>>& InMaterialMap, TSet<FString> InTexturePaths)
+void UAAU_AutoTextureMapping::MapTexturesToMaterial(TMap<FString, TArray<UMaterialInstance*>>& InMaterialMap, TSet<FString>& InTexturePaths)
 {
     for (const FString& TexturePath : InTexturePaths)
     {

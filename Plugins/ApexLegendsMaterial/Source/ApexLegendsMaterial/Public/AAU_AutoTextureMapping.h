@@ -38,9 +38,9 @@ protected:
 	// Create new Material Instance asset
 	UMaterialInstanceConstant* CreateMaterialInstance(UMaterialInterface* ParentMaterial, FString FullPath);
 
-	void GetTexturePaths(TSet<UObject*> Objects, const FString& TextureFolderName, TSet<FString> OutPaths);
+	void GetTexturePaths(TSet<UObject*> Objects, const FString& TextureFolderName, TSet<FString>& OutPaths);
 
-	void MapTexturesToMaterial(TMap<FString, TArray<UMaterialInstance*>>& InMaterialMap, TSet<FString> InTexturePaths);
+	void MapTexturesToMaterial(TMap<FString, TArray<UMaterialInstance*>>& InMaterialMap, TSet<FString>& InTexturePaths);
 
 	void SetMaterialParamValue(UMaterialInstance* MatInst, const FName& ParamName, FMaterialParameterValue ParamValue);
 

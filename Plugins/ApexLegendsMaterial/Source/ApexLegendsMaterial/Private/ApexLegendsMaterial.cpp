@@ -60,7 +60,7 @@ void FApexLegendsMaterialModule::RegisterMenus()
     }
 
     {
-        UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu("LevelEditor.LevelEditorToolBar.User");  // "LevelEditor.LevelEditorToolBar.User"
+        UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu("LevelEditor.LevelEditorToolBar.User");
         {
             FToolMenuSection& Section = ToolbarMenu->FindOrAddSection("ApexLegendsTool");
             {
@@ -73,7 +73,7 @@ void FApexLegendsMaterialModule::RegisterMenus()
 
 void FApexLegendsMaterialModule::PluginButtonClicked()
 {
-    const FString Path = "/ApexLegendsMaterial/Util/Widgets/ApexLegendsTool";
+    const FString Path = "/ApexLegendsMaterial/Util/ApexLegendsTool";
     UEditorUtilityWidgetBlueprint* EUW = LoadObject<UEditorUtilityWidgetBlueprint>(nullptr, *Path);
     if (EUW)
     {
