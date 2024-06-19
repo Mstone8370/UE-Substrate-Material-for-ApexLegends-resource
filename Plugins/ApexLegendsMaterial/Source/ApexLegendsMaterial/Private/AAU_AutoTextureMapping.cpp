@@ -133,7 +133,7 @@ void UAAU_AutoTextureMapping::AutoTextureMapping(FString TextureFolderNameOverri
 
     // Gather texture paths
     TSet<FString> TexturePaths;
-    const FString TextureFolderName = TextureFolderNameOverride.Len() > 0 ? TextureFolderNameOverride : DefaultTextureFolderName;
+    const FString TextureFolderName = (TextureFolderNameOverride.Len() > 0 ? TextureFolderNameOverride : DefaultTextureFolderName).TrimStartAndEnd();
     GetTexturePaths(SelectedObjects, TextureFolderName, TexturePaths);
     
     // Read Texture and connect to Material Instance
