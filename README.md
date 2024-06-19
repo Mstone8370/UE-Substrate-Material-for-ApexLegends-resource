@@ -39,7 +39,7 @@ This project's Unreal Engine version is ```5.4```
 
 ## By clonning this repository:
 
-  **Apex Legends Material** plugin is disabled by default, so you should enable it.
+  **Apex Legends Material** plugin may be disabled at first, so make sure to enable it.
 
 ![plugin](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/a888f091-c736-47b0-a2ea-1e09f71d250a)
 
@@ -73,7 +73,13 @@ This project's Unreal Engine version is ```5.4```
 
 * Auto Texture Mapping tool
 
-1. In the Skeletal Mesh's **Asset Details** pannel, disconnect all Materials if any are connected by default.
+![tool_widget](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/d1161d06-df6e-4077-bf41-7049b7b810b3)
+
+1. Click the Nessie icon in the toolbar to open the Tool Widget.
+
+![toolbar](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/7d01d03c-8ac2-4a0b-be49-26f274476ecc)
+
+2. In the Skeletal Mesh's **Asset Details** pannel, disconnect all Materials if any are connected by default.
 
    If any materials are connected, this tool will try to change only textures of that material.
 
@@ -83,17 +89,17 @@ This project's Unreal Engine version is ```5.4```
 
 ![slotname](https://github.com/Mstone8370/UE-Material-for-ApexLegends-Asset/assets/43489974/e26d26cc-2c46-4575-8382-9e0c07ed1aa3)
 
-2. Create a folder in directory where Skeletal Mesh exists, and import all textures to that folder.
+3. Create a folder in directory where Skeletal Mesh exists, and import all textures to that folder.
 
    This tool will search for a folder named ```Textures``` by default, but you can designate another folder name.
 
-![texturefoldername](https://github.com/Mstone8370/UE-Material-for-ApexLegends-Asset/assets/43489974/d52d34d1-3d51-4cb2-9445-a9e3b1aa81b5)
+4. **Save all** assets before running the Auto Texture Mapping tool.
 
-3. **Save all** assets before running the Auto Texture Mapping tool.
+5. Select the Mesh assets in Contents Browser, and click ```Auto Texture Mapping``` button in the Tool Widget.
 
-4. Right-click the Skeletal Mesh, and select ```Auto Texture Mapping``` inside the **Scripted Asset Actions**.
+![nessie_AutoTexMap](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/51a3d9d5-3ef8-421c-9e17-9921ebe45bcb)
 
-![right-click](https://github.com/Mstone8370/UE-Material-for-ApexLegends-Asset/assets/43489974/23e92291-fe78-489c-83ee-39d6d0e8d021)
+  Previous method is still available.
 
 ![demo](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/c9fc55e1-ce82-434d-aee9-49e534d86c98)
 
@@ -101,11 +107,17 @@ This project's Unreal Engine version is ```5.4```
 
 * Auto Texture Mapping tool with **Recolor Skins**
 
-  Before running the tool, open the Skeletal Mesh and change the ```Slot Name```s of the material slots to match the names of recolor skins.
+  **Recolor Skin** uses a different skin name for the same mesh.
+  
+  Therefore, you need to change the ```Material Slot Name``` of the mesh to match the name of the **Recolor Skin**.
+  
+  In the **Change Skin Name** section of the Tool Widget, select the mesh to change the skin name, enter the new skin name, and click the **Change Skin Name** button.
 
-  For example, if the ```Slot Name``` is ```wraith_lgnd_v19_voidwalker_body```, recolor skin's names will be ```wraith_[recolor skin name]_[parts]``` like ```wraith_lgnd_v19_voidwalker_rc01_gear``` and ```wraith_lgnd_v19_voidwalker_rt01_helmet```.
+  For example, if the ```Material Slot Name``` is ```wraith_lgnd_v19_voidwalker_body```, the skin name is ```lgnd_v19_voidwalker```, and the **Recolor Skin** name will be ```lgnd_v19_voidwalker_rc01``` or ```lgnd_v19_voidwalker_rt01```.
 
-![recolor](https://github.com/Mstone8370/UE-Material-for-ApexLegends-Asset/assets/43489974/96de7184-26bd-40c5-8daa-a06da53c5595)
+  Lastly, run the Auto Texture Mapping tool.
+
+![slot_name](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/bfe750f1-d21c-4aac-89ea-ebed3004af5a)
 
 ---
 
@@ -117,9 +129,9 @@ This project's Unreal Engine version is ```5.4```
 
 * You can watch the demo of my workflow.
 
-  [Auto Texture Mapping tool with recolor skins](https://youtu.be/RVcoh0FYdR4)
+  [Auto Texture Mapping tool with recolor skins (v1.2.0)](https://youtu.be/14Dsa7mgJkU)
 
-  [Unreal Engine Sequencer work with animations](https://youtu.be/UpkA9dgYGuA)
+  [Unreal Engine Sequencer work with animations (v.1.0.0)](https://youtu.be/UpkA9dgYGuA)
 
 # Issues
 
