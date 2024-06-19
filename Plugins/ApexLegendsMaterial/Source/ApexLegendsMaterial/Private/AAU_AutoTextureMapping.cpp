@@ -106,14 +106,22 @@ void UAAU_AutoTextureMapping::AutoTextureMapping(FString TextureFolderNameOverri
         return;
     }
 
+    // Object filtering
     TSet<UObject*> SelectedObjects;
     TArray<FAssetData> SelectedAssetDatas = UEditorUtilityLibrary::GetSelectedAssetData();
     for (FAssetData& SelectedAssetData : SelectedAssetDatas)
     {
-        if (UObject* SelectedObejct = SelectedAssetData.GetAsset())
+        if (UObject* SelectedObject = SelectedAssetData.GetAsset())
         {
-            SelectedObjects.Add(SelectedObejct);
+            if (SelectedObject->IsA<USkeletalMesh>() || SelectedObject->IsA<UStaticMesh>())
+            {
+                SelectedObjects.Add(SelectedObject);
+            }
         }
+    }
+    if (SelectedObjects.IsEmpty())
+    {
+        return;
     }
 
     // Set Material Instances

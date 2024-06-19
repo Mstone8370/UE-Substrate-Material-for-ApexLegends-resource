@@ -150,6 +150,14 @@ void UEUW_EditorWidget::AutoTextureMapping(FString TextureFolderName)
     {
         GetAAU()->AutoTextureMapping(TextureFolderName);
     }
+    else
+    {
+        FMessageDialog::Open(
+            EAppMsgType::Ok,
+            FText::FromString(TEXT("AAU is not valid.")),
+            FText::FromString(TEXT("Error"))
+        );
+    }
 }
 
 void UEUW_EditorWidget::DisconnectAllMaterials()
@@ -157,6 +165,14 @@ void UEUW_EditorWidget::DisconnectAllMaterials()
     if (GetAAU())
     {
         GetAAU()->DisconnectAllMaterials();
+    }
+    else
+    {
+        FMessageDialog::Open(
+            EAppMsgType::Ok,
+            FText::FromString(TEXT("AAU is not valid.")),
+            FText::FromString(TEXT("Error"))
+        );
     }
 }
 
