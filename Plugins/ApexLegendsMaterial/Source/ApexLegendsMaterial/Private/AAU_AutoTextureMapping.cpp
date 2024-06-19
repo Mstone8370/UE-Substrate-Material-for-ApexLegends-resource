@@ -16,7 +16,7 @@
 
 UAAU_AutoTextureMapping::UAAU_AutoTextureMapping()
     : DefaultTextureFolderName(TEXT("Textures"))
-    , MasterMaterialPath(TEXT("/ApexLegendsMaterial/Materials/M_Master"))
+    , DefaultMasterMaterialPath(TEXT("/ApexLegendsMaterial/Materials/M_Master"))
     , MasterMaterialOverride(nullptr)
 {
     // CustomMaterialMap
@@ -91,6 +91,7 @@ void UAAU_AutoTextureMapping::DisconnectAllMaterials()
         // Update Object
         SelectObject->PostEditChange();
 
+        // Save Object
         const FString ObjectPath = SelectObject->GetPathName();
         const FString FilePath = FPaths::GetBaseFilename(ObjectPath, false);
         UEditorAssetLibrary::SaveAsset(FilePath, false);
@@ -98,6 +99,46 @@ void UAAU_AutoTextureMapping::DisconnectAllMaterials()
 }
 
 void UAAU_AutoTextureMapping::AutoTextureMapping(FString TextureFolderNameOverride)
+{
+    if (!CheckMasterMaterial())
+    {
+        UE_LOG(LogTemp, Error, TEXT("[AutoTextureMapping] Failed to load Master Material"));
+        return;
+    }
+
+    TSet<UObject*> SelectedObjects;
+    TArray<FAssetData> SelectedAssetDatas = UEditorUtilityLibrary::GetSelectedAssetData();
+    for (FAssetData& SelectedAssetData : SelectedAssetDatas)
+    {
+        if (UObject* SelectedObejct = SelectedAssetData.GetAsset())
+        {
+            SelectedObjects.Add(SelectedObejct);
+        }
+    }
+
+    // Set Material Instances
+    TMap<FString, TArray<UMaterialInstance*>> MaterialMap;  // key: Material Slot Name, Value: Array of Material Instances
+    for (UObject* Obj : SelectedObjects)
+    {
+        SetMaterialInstances(Obj, MaterialMap);
+    }
+
+    // Gather texture paths
+    TSet<FString> TexturePaths;
+    const FString TextureFolderName = TextureFolderNameOverride.Len() > 0 ? TextureFolderNameOverride : DefaultTextureFolderName;
+    GetTexturePaths(SelectedObjects, TextureFolderName, TexturePaths);
+    
+    // Read Texture and connect to Material Instance
+    MapTexturesToMaterial(MaterialMap, TexturePaths);
+
+    // Update Mesh Object
+    for (UObject* Obj : SelectedObjects)
+    {
+        Obj->PostEditChange();
+    }
+}
+
+bool UAAU_AutoTextureMapping::CheckMasterMaterial()
 {
     // Check Master Material
     if (!MasterMaterial)
@@ -108,71 +149,30 @@ void UAAU_AutoTextureMapping::AutoTextureMapping(FString TextureFolderNameOverri
         }
         else
         {
-            MasterMaterial = Cast<UMaterialInterface>(UEditorAssetLibrary::LoadAsset(MasterMaterialPath));
-            if (!MasterMaterial)
-            {
-                UE_LOG(LogTemp, Error, TEXT("[AutoTextureMapping] Failed to load Master Material"));
-                return;
-            }
+            MasterMaterial = Cast<UMaterialInterface>(UEditorAssetLibrary::LoadAsset(DefaultMasterMaterialPath));
         }
     }
-
-    // Do mapping
-    TArray<FAssetData> SelectedAssetDatas = UEditorUtilityLibrary::GetSelectedAssetData();
-    for (FAssetData& SelectedAssetData : SelectedAssetDatas)
-    {
-        UObject* SelectObject = SelectedAssetData.GetAsset();
-        if (!SelectObject || !(SelectObject->IsA<USkeletalMesh>() || SelectObject->IsA<UStaticMesh>()))
-        {
-            continue;
-        }
-
-        const FString SelectedAssetObjectPath = SelectObject->GetPathName();
-        const FString AssetFolderPath = FPaths::GetPath(SelectedAssetObjectPath);
-        const FString TextureFolderName = TextureFolderNameOverride.Len() > 0 ? TextureFolderNameOverride : DefaultTextureFolderName;
-        const FString TextureFolderPath = FPaths::ConvertRelativePathToFull(AssetFolderPath, TextureFolderName);
-
-        TMap<FString, UMaterialInstance*> MaterialNameMap;
-
-        // Set Skeletal Mesh's materials
-        if (!SetMaterialInstances(SelectObject, MaterialNameMap))
-        {
-            continue;
-        }
-
-        // Check if Texture Folder exists
-        if (!UEditorAssetLibrary::DoesDirectoryExist(TextureFolderPath))
-        {
-            UE_LOG(LogTemp, Error, TEXT("[AutoTextureMapping] Texture Folder [%s] not exist"), *TextureFolderPath);
-            continue;
-        }
-
-        // Map Textures
-        MapTexturesToMaterial(MaterialNameMap, TextureFolderPath);
-    }
+    return MasterMaterial != nullptr;
 }
 
-bool UAAU_AutoTextureMapping::SetMaterialInstances(UObject* MeshObject, TMap<FString, UMaterialInstance*>& OutMaterialNameMap)
+void UAAU_AutoTextureMapping::SetMaterialInstances(UObject* MeshObject, TMap<FString, TArray<UMaterialInstance*>>& OutMaterialMap)
 {
-    bool bRet = false;
     if (USkeletalMesh* SkeletalMesh = Cast<USkeletalMesh>(MeshObject))
     {
-        bRet = SetMaterialInstances_SkeletalMesh(SkeletalMesh, OutMaterialNameMap);
+        SetMaterialInstances_SkeletalMesh(SkeletalMesh, OutMaterialMap);
     }
     else if (UStaticMesh* StaticMesh = Cast<UStaticMesh>(MeshObject))
     {
-        bRet = SetMaterialInstances_StaticMesh(StaticMesh, OutMaterialNameMap);
+        SetMaterialInstances_StaticMesh(StaticMesh, OutMaterialMap);
     }
 
     // Save Mesh
     const FString ObjectPath = MeshObject->GetPathName();
     const FString FilePath = FPaths::GetBaseFilename(ObjectPath, false);
     UEditorAssetLibrary::SaveAsset(FilePath, false);
-
-    return bRet;
 }
 
-bool UAAU_AutoTextureMapping::SetMaterialInstances_SkeletalMesh(USkeletalMesh* SkeletalMesh, TMap<FString, UMaterialInstance*>& OutMaterialNameMap)
+void UAAU_AutoTextureMapping::SetMaterialInstances_SkeletalMesh(USkeletalMesh* SkeletalMesh, TMap<FString, TArray<UMaterialInstance*>>& OutMaterialMap)
 {
     // Set Material Instances
     TArray<FSkeletalMaterial>& MaterialList = SkeletalMesh->GetMaterials();
@@ -187,7 +187,7 @@ bool UAAU_AutoTextureMapping::SetMaterialInstances_SkeletalMesh(USkeletalMesh* S
 
         // Trying cast Material Interface to Material Instance. If failed, create new Material Instance.
         UMaterialInterface* MaterialInterface = Material.MaterialInterface;
-        UMaterialInstance* MaterialInstance = CastOrCreateMaterialInstance(
+        UMaterialInstance* MaterialInstance = CastOrFindOrCreateMaterialInstance(
             MaterialInterface,
             FPaths::GetPath(SkeletalMesh->GetPathName()),
             MaterialSlotName.ToString(),
@@ -202,12 +202,19 @@ bool UAAU_AutoTextureMapping::SetMaterialInstances_SkeletalMesh(USkeletalMesh* S
         Material.MaterialInterface = MaterialInstance;
 
         // Add to map for texture mapping
-        OutMaterialNameMap.Add(MaterialSlotName.ToString(), MaterialInstance);
+        FString MaterialSlotNameStr = MaterialSlotName.ToString();
+        if (OutMaterialMap.Contains(MaterialSlotNameStr))
+        {
+            OutMaterialMap.Find(MaterialSlotNameStr)->Add(MaterialInstance);
+        }
+        else
+        {
+            OutMaterialMap.Add(MaterialSlotNameStr, TArray<UMaterialInstance*>({ MaterialInstance }));
+        }
     }
-    return true;
 }
 
-bool UAAU_AutoTextureMapping::SetMaterialInstances_StaticMesh(UStaticMesh* StaticMesh, TMap<FString, UMaterialInstance*>& OutMaterialNameMap)
+void UAAU_AutoTextureMapping::SetMaterialInstances_StaticMesh(UStaticMesh* StaticMesh, TMap<FString, TArray<UMaterialInstance*>>& OutMaterialMap)
 {
     // Set Material Instances
     TArray<FStaticMaterial>& MaterialList = StaticMesh->GetStaticMaterials();
@@ -222,7 +229,7 @@ bool UAAU_AutoTextureMapping::SetMaterialInstances_StaticMesh(UStaticMesh* Stati
 
         // Trying cast Material Interface to Material Instance. If failed, create new Material Instance.
         UMaterialInterface* MaterialInterface = Material.MaterialInterface;
-        UMaterialInstance* MaterialInstance = CastOrCreateMaterialInstance(
+        UMaterialInstance* MaterialInstance = CastOrFindOrCreateMaterialInstance(
             MaterialInterface,
             FPaths::GetPath(StaticMesh->GetPathName()),
             MaterialSlotName.ToString(),
@@ -237,34 +244,42 @@ bool UAAU_AutoTextureMapping::SetMaterialInstances_StaticMesh(UStaticMesh* Stati
         Material.MaterialInterface = MaterialInstance;
 
         // Add to map for texture mapping
-        OutMaterialNameMap.Add(MaterialSlotName.ToString(), MaterialInstance);
-    }
-    return true;
-}
-
-UMaterialInstance* UAAU_AutoTextureMapping::CastOrCreateMaterialInstance(UMaterialInterface*& MaterialInterface, const FString& BasePath, const FString& MaterialSlotName, UMaterialInterface* ParentMaterial)
-{
-    UMaterialInstance* MaterialInstance = Cast<UMaterialInstance>(MaterialInterface);
-    if (!MaterialInstance)
-    {
-        // Create New Material Instance
-        const FString NewMaterialInstanceName = FString("MI_") + MaterialSlotName;
-        const FString MaterialInstanceFullPath = FPaths::ConvertRelativePathToFull(BasePath, NewMaterialInstanceName);
-
-        if (UEditorAssetLibrary::DoesAssetExist(MaterialInstanceFullPath))
+        FString MaterialSlotNameStr = MaterialSlotName.ToString();
+        if (OutMaterialMap.Contains(MaterialSlotNameStr))
         {
-            // If Material exists in working folder, use that.
-            MaterialInstance = Cast<UMaterialInstance>(UEditorAssetLibrary::LoadAsset(MaterialInstanceFullPath));
+            OutMaterialMap.Find(MaterialSlotNameStr)->Add(MaterialInstance);
         }
         else
         {
-            MaterialInstance = CreateMaterialInstance(ParentMaterial, MaterialInstanceFullPath);
+            OutMaterialMap.Add(MaterialSlotNameStr, TArray<UMaterialInstance*>({ MaterialInstance }));
         }
+    }
+}
 
+UMaterialInstance* UAAU_AutoTextureMapping::CastOrFindOrCreateMaterialInstance(UMaterialInterface*& MaterialInterface, const FString& BasePath, const FString& MaterialSlotName, UMaterialInterface* ParentMaterial)
+{
+    // Try to cast
+    UMaterialInstance* MaterialInstance = Cast<UMaterialInstance>(MaterialInterface);
+    if (MaterialInstance)
+    {
+        return MaterialInstance;
+    }
+
+    // Try to find existing Material Instance
+    const FString NewMaterialInstanceName = FString("MI_") + MaterialSlotName;
+    const FString MaterialInstanceFullPath = FPaths::ConvertRelativePathToFull(BasePath, NewMaterialInstanceName);
+    if (UEditorAssetLibrary::DoesAssetExist(MaterialInstanceFullPath))
+    {
+        MaterialInstance = Cast<UMaterialInstance>(UEditorAssetLibrary::LoadAsset(MaterialInstanceFullPath));
+    }
+
+    // Create new
+    if (!MaterialInstance)
+    {
+        MaterialInstance = CreateMaterialInstance(ParentMaterial, MaterialInstanceFullPath);
         if (!MaterialInstance)
         {
             UE_LOG(LogTemp, Error, TEXT("[AutoTextureMapping] Failed to create Material Instance: %s"), *NewMaterialInstanceName);
-            return nullptr;
         }
     }
 
@@ -307,40 +322,66 @@ UMaterialInstanceConstant* UAAU_AutoTextureMapping::CreateMaterialInstance(UMate
     return MaterialInstanceAsset;
 }
 
-void UAAU_AutoTextureMapping::MapTexturesToMaterial(TMap<FString, UMaterialInstance*>& InMaterialNameMap, FString TextureFolderPath)
+void UAAU_AutoTextureMapping::GetTexturePaths(TSet<UObject*> Objects, const FString& TextureFolderName, TSet<FString> OutPaths)
 {
-    // Get Textures
     UObjectLibrary* ObjectLibrary = UObjectLibrary::CreateLibrary(nullptr, false, GIsEditor);
     ObjectLibrary->bRecursivePaths = true;
     ObjectLibrary->ObjectBaseClass = UTexture2D::StaticClass();
-    ObjectLibrary->LoadAssetDataFromPath(TextureFolderPath);
 
-    TArray<FAssetData> TextureAssetDatas;
-    ObjectLibrary->GetAssetDataList(TextureAssetDatas);
-
-    for (const FAssetData& TextureAssetData : TextureAssetDatas)
+    for (UObject* Obj : Objects)
     {
-        const FString TextureAssetObjectPath = TextureAssetData.GetObjectPathString();
-        const FString TextureAssetFilePath = FPaths::GetBaseFilename(TextureAssetObjectPath, false);
-        const FString TextureAssetName = FPaths::GetBaseFilename(TextureAssetFilePath);
+        const FString ObjectPath = Obj->GetPathName();
+        const FString ObjectFolderPath = FPaths::GetPath(ObjectPath);
+        const FString TextureFolderPath = FPaths::ConvertRelativePathToFull(ObjectFolderPath, TextureFolderName);
 
-        FString MaterialName = TextureAssetName;
-        FString TextureType = "";
-        int32 DelimeterIndex;
-        if (TextureAssetName.FindLastChar('_', DelimeterIndex))
+        ObjectLibrary->LoadAssetDataFromPath(TextureFolderPath);
+
+        TArray<FAssetData> TextureAssetDatas;
+        ObjectLibrary->GetAssetDataList(TextureAssetDatas);
+
+        for (FAssetData& TextureAssetData : TextureAssetDatas)
         {
-            MaterialName = TextureAssetName.Left(DelimeterIndex);
-            TextureType = TextureAssetName.RightChop(DelimeterIndex + 1);
+            const FString TextureObjectPath = TextureAssetData.GetObjectPathString();
+            const FString TextureFilePath = FPaths::GetBaseFilename(TextureObjectPath, false);
+            OutPaths.Add(TextureFilePath);
+        }
+    }
+}
+
+void UAAU_AutoTextureMapping::MapTexturesToMaterial(TMap<FString, TArray<UMaterialInstance*>>& InMaterialMap, TSet<FString> InTexturePaths)
+{
+    for (const FString& TexturePath : InTexturePaths)
+    {
+        // Cleanup Texture file name
+        FString TextureName = FPaths::GetBaseFilename(TexturePath);
+        if (TextureName.Len() < 1)
+        {
+            continue;
+        }
+        if (TextureName.StartsWith(TEXT("T_")))
+        {
+            TextureName = TextureName.RightChop(2);
         }
 
-        if (!InMaterialNameMap.Contains(MaterialName))
+        // Get Material name and Texture type from Texture file name
+        FString MaterialSlotName = TextureName;
+        FString TextureType = "";
+        int32 DelimeterIndex;
+        if (TextureName.FindLastChar('_', DelimeterIndex))
         {
-            UE_LOG(LogTemp, Warning, TEXT("[AutoTextureMapping] Material Not Found: %s"), *MaterialName);
+            MaterialSlotName = TextureName.Left(DelimeterIndex);
+            TextureType = TextureName.RightChop(DelimeterIndex + 1);
+        }
+
+        // Check if MaterialSlotName exists
+        if (!InMaterialMap.Contains(MaterialSlotName))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("[AutoTextureMapping] Material Not Found: %s"), *MaterialSlotName);
             continue;
         }
 
         // Load Texture
-        UTexture2D* Texture = Cast<UTexture2D>(UEditorAssetLibrary::LoadAsset(TextureAssetFilePath));
+        UTexture2D* Texture = Cast<UTexture2D>(UEditorAssetLibrary::LoadAsset(TexturePath));
         if (LinearTextureTypes.Contains(TextureType) && Texture->SRGB > 0)
         {
             Texture->SRGB = 0;
@@ -357,36 +398,38 @@ void UAAU_AutoTextureMapping::MapTexturesToMaterial(TMap<FString, UMaterialInsta
 
             // Update and save texture
             Texture->UpdateResource();
-            UEditorAssetLibrary::SaveAsset(TextureAssetFilePath, false);
+            UEditorAssetLibrary::SaveAsset(TexturePath, false);
         }
 
         // Set Material Instance Texture Parameter
         FName* ParamName = TextureTypeToParamName.Find(TextureType);
         if (!ParamName)
         {
-            UE_LOG(LogTemp, Warning, TEXT("[AutoTextureMapping] Unknown Texture Type: %s"), *TextureAssetFilePath);
+            UE_LOG(LogTemp, Warning, TEXT("[AutoTextureMapping] Unknown Texture Type: %s"), *TexturePath);
             continue;
         }
 
-        UMaterialInstance* TargetMaterialInstance = *InMaterialNameMap.Find(MaterialName);
-        if (ParamName->IsEqual(FName("Opacity")))
+        TArray<UMaterialInstance*> MaterialInstances = *InMaterialMap.Find(MaterialSlotName); // The existence of MaterialSlotName has already been checked above
+        for (UMaterialInstance* TargetMaterialInstance : MaterialInstances)
         {
-            SetMaterialParamValue(TargetMaterialInstance, FName("AlbedoAlphaAsOpacityMask"), FMaterialParameterValue(false));
+            if (ParamName->IsEqual(FName("Opacity")))
+            {
+                SetMaterialParamValue(TargetMaterialInstance, FName("AlbedoAlphaAsOpacityMask"), FMaterialParameterValue(false));
+            }
+            if (ParamName->IsEqual(FName("ScatterThickness")))
+            {
+                SetMaterialParamValue(TargetMaterialInstance, FName("Subsurface"), FMaterialParameterValue(true));
+            }
+            SetMaterialParamValue(TargetMaterialInstance, *ParamName, FMaterialParameterValue(Texture));
         }
-        if (ParamName->IsEqual(FName("ScatterThickness")))
-        {
-            SetMaterialParamValue(TargetMaterialInstance, FName("Subsurface"), FMaterialParameterValue(true));
-        }
-        SetMaterialParamValue(TargetMaterialInstance, *ParamName, FMaterialParameterValue(Texture));
     }
 
     // Save Material Instances
-    TArray<FString> MapKeys;
-    InMaterialNameMap.GetKeys(MapKeys);
-    for (const FString& Key : MapKeys)
+    for (TPair<FString, TArray<UMaterialInstance*>>& Item : InMaterialMap)
     {
-        if (UMaterialInstance* MatInst = *InMaterialNameMap.Find(Key))
+        for (UMaterialInstance* MatInst : Item.Value)
         {
+            MatInst->PostEditChange();
             FString PathName = MatInst->GetPathName();
             UEditorAssetLibrary::SaveAsset(FPaths::GetBaseFilename(PathName, false), false);
         }

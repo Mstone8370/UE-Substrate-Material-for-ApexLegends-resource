@@ -24,28 +24,30 @@ public:
 	void AutoTextureMapping(UPARAM(DisplayName = "Custom Texture Folder") FString TextureFolderNameOverride);
 
 protected:
-	/**
-	* Read Mesh's materials info, find existing Material Instance or create new Material Instance, and set.
-	*/
-	bool SetMaterialInstances(UObject* MeshObject, TMap<FString, UMaterialInstance*>& OutMaterialNameMap);
+	bool CheckMasterMaterial();
 
-	bool SetMaterialInstances_SkeletalMesh(USkeletalMesh* SkeletalMesh, TMap<FString, UMaterialInstance*>& OutMaterialNameMap);
+	// Read Mesh's materials info, find existing Material Instance or create new Material Instance, and set.
+	void SetMaterialInstances(UObject* MeshObject, TMap<FString, TArray<UMaterialInstance*>>& OutMaterialNameMap);
 
-	bool SetMaterialInstances_StaticMesh(UStaticMesh* StaticMesh, TMap<FString, UMaterialInstance*>& OutMaterialNameMap);
+	void SetMaterialInstances_SkeletalMesh(USkeletalMesh* SkeletalMesh, TMap<FString, TArray<UMaterialInstance*>>& OutMaterialNameMap);
 
-	UMaterialInstance* CastOrCreateMaterialInstance(UMaterialInterface*& MaterialInterface, const FString& BasePath, const FString& MaterialSlotName, UMaterialInterface* ParentMaterial);
+	void SetMaterialInstances_StaticMesh(UStaticMesh* StaticMesh, TMap<FString, TArray<UMaterialInstance*>>& OutMaterialNameMap);
+
+	UMaterialInstance* CastOrFindOrCreateMaterialInstance(UMaterialInterface*& MaterialInterface, const FString& BasePath, const FString& MaterialSlotName, UMaterialInterface* ParentMaterial);
 
 	// Create new Material Instance asset
 	UMaterialInstanceConstant* CreateMaterialInstance(UMaterialInterface* ParentMaterial, FString FullPath);
 
-	void MapTexturesToMaterial(TMap<FString, UMaterialInstance*>& InMaterialNameMap, FString TextureFolderPath);
+	void GetTexturePaths(TSet<UObject*> Objects, const FString& TextureFolderName, TSet<FString> OutPaths);
+
+	void MapTexturesToMaterial(TMap<FString, TArray<UMaterialInstance*>>& InMaterialMap, TSet<FString> InTexturePaths);
 
 	void SetMaterialParamValue(UMaterialInstance* MatInst, const FName& ParamName, FMaterialParameterValue ParamValue);
 
 	UPROPERTY(EditAnywhere, Category = "AutoTextureMapping Setup")
 	FString DefaultTextureFolderName;
 
-	FString MasterMaterialPath;
+	FString DefaultMasterMaterialPath;
 
 	UPROPERTY(EditAnywhere, Category = "AutoTextureMapping Setup|Material Setup")
 	TObjectPtr<UMaterialInterface> MasterMaterialOverride;
