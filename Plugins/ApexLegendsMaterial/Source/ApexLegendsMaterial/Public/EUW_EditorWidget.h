@@ -7,6 +7,9 @@
 #include "EUW_EditorWidget.generated.h"
 
 class UAAU_AutoTextureMapping;
+class UVersionChecker;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCheckedUpdateSignature, bool, bNewVersionAvailable);
 
 /**
  * 
@@ -15,7 +18,7 @@ UCLASS()
 class APEXLEGENDSMATERIAL_API UEUW_EditorWidget : public UEditorUtilityWidget
 {
 	GENERATED_BODY()
-	
+
 protected:
 	UFUNCTION(BlueprintCallable, Category = "Apex Legends Tool")
 	bool GetMaterialSlotNames(UObject* Object, TArray<FName>& OutNames, FString& OutSkinName);
@@ -34,12 +37,26 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Apex Legends Tool")
 	void DisconnectAllMaterials();
 
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Apex Legends Tool")
+	FString GetPluginVersion();
+
+	UFUNCTION(BlueprintCallable, Category = "Apex Legends Tool")
+	void CheckUpdate();
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Apex Legends Tool")
 	TSubclassOf<UAAU_AutoTextureMapping> AAU_Class;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnCheckedUpdateSignature OnCheckedUpdateDelegate;
 
 private:
 	UPROPERTY()
 	TObjectPtr<UAAU_AutoTextureMapping> AAU;
 
 	UAAU_AutoTextureMapping* GetAAU();
+
+	UPROPERTY()
+	TObjectPtr<UVersionChecker> VC;
+
+	UVersionChecker* GetVC();
 };

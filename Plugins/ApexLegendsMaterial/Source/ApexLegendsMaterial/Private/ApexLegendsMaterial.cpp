@@ -7,8 +7,6 @@
 #include "EditorUtilityWidgetBlueprint.h"
 #include "EditorUtilitySubsystem.h"
 
-#include "Interfaces/IPluginManager.h"
-
 #include "ApexLegendsMaterialStyle.h"
 #include "ApexLegendsMaterialCommands.h"
 

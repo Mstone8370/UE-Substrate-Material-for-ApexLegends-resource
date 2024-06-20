@@ -5,7 +5,6 @@
 
 #include "Engine/SkinnedAssetCommon.h"
 #include "Materials/MaterialInstanceConstant.h"
-#include "Internationalization/Regex.h"
 
 #include "Engine/ObjectLibrary.h"
 #include "EditorUtilityLibrary.h"
@@ -133,7 +132,7 @@ void UAAU_AutoTextureMapping::AutoTextureMapping(FString TextureFolderNameOverri
 
     // Gather texture paths
     TSet<FString> TexturePaths;
-    const FString TextureFolderName = (TextureFolderNameOverride.Len() > 0 ? TextureFolderNameOverride : DefaultTextureFolderName).TrimStartAndEnd();
+    const FString TextureFolderName = TextureFolderNameOverride.TrimStartAndEnd().IsEmpty() ? DefaultTextureFolderName : TextureFolderNameOverride;
     GetTexturePaths(SelectedObjects, TextureFolderName, TexturePaths);
     
     // Read Texture and connect to Material Instance

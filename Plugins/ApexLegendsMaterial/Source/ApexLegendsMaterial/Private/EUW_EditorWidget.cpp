@@ -4,6 +4,7 @@
 #include "EUW_EditorWidget.h"
 
 #include "AAU_AutoTextureMapping.h"
+#include "VersionChecker.h"
 
 #include "Engine/SkinnedAssetCommon.h"
 #include "EditorAssetLibrary.h"
@@ -176,11 +177,43 @@ void UEUW_EditorWidget::DisconnectAllMaterials()
     }
 }
 
+FString UEUW_EditorWidget::GetPluginVersion()
+{
+    if (GetVC())
+    {
+        return GetVC()->GetPluginVersion();
+    }
+    return FString();
+}
+
+void UEUW_EditorWidget::CheckUpdate()
+{
+    if (GetVC())
+    {
+        GetVC()->SendRequest();
+    }
+}
+
 UAAU_AutoTextureMapping* UEUW_EditorWidget::GetAAU()
 {
     if (!AAU)
     {
-        AAU = NewObject<UAAU_AutoTextureMapping>(GetTransientPackage(), AAU_Class);
+        AAU = NewObject<UAAU_AutoTextureMapping>(this, AAU_Class);
     }
     return AAU;
+}
+
+UVersionChecker* UEUW_EditorWidget::GetVC()
+{
+    if (!VC)
+    {
+        VC = NewObject<UVersionChecker>(this);
+        VC->OnCheckedUpdate.BindLambda(
+            [this](bool b)
+            {
+                OnCheckedUpdateDelegate.Broadcast(b);
+            }
+        );
+    }
+    return VC;
 }

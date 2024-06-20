@@ -46,7 +46,10 @@ public class ApexLegendsMaterial : ModuleRules
 				"UMG",
 				"UMGEditor",
 				"UnrealEd",
-				"Projects"
+				"Projects",
+				"Json",
+				"JsonUtilities",
+				"HTTP"
 			}
 			);
 		
