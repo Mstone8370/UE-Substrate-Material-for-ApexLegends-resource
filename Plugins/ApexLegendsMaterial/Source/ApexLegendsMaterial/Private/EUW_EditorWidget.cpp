@@ -8,6 +8,7 @@
 
 #include "Engine/SkinnedAssetCommon.h"
 #include "EditorAssetLibrary.h"
+#include "Subsystems/AssetEditorSubsystem.h"
 
 bool UEUW_EditorWidget::GetMaterialSlotNames(UObject* Object, TArray<FName>& OutNames, FString& OutSkinName)
 {
@@ -191,6 +192,18 @@ void UEUW_EditorWidget::CheckUpdate()
     if (GetVC())
     {
         GetVC()->SendRequest();
+    }
+}
+
+void UEUW_EditorWidget::OpenAAU()
+{
+    const FString Path = "/ApexLegendsMaterial/Util/BP_AutoTextureMapping";
+    if (GEditor)
+    {
+        if (UAssetEditorSubsystem* AssetEditorSubsystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>())
+        {
+            AssetEditorSubsystem->OpenEditorForAsset(Path, EAssetTypeActivationOpenedMethod::Edit);
+        }
     }
 }
 

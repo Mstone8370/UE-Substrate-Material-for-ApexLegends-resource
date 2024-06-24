@@ -43,6 +43,9 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Apex Legends Tool")
 	void CheckUpdate();
 
+	UFUNCTION(BlueprintCallable, Category = "Apex Legends Tool")
+	void OpenAAU();
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Apex Legends Tool")
 	TSubclassOf<UAAU_AutoTextureMapping> AAU_Class;
 
