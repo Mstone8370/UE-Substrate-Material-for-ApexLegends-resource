@@ -4,6 +4,7 @@
 #include "EUW_EditorWidget.h"
 
 #include "AAU_AutoTextureMapping.h"
+#include "AAU_AnimModifier.h"
 #include "VersionChecker.h"
 
 #include "Engine/SkinnedAssetCommon.h"
@@ -195,7 +196,7 @@ void UEUW_EditorWidget::CheckUpdate()
     }
 }
 
-void UEUW_EditorWidget::OpenAAU()
+void UEUW_EditorWidget::OpenATM()
 {
     const FString Path = "/ApexLegendsMaterial/Util/BP_AutoTextureMapping";
     if (GEditor)
@@ -207,6 +208,34 @@ void UEUW_EditorWidget::OpenAAU()
     }
 }
 
+void UEUW_EditorWidget::OpenAM()
+{
+    const FString Path = "/ApexLegendsMaterial/Util/BP_AnimModifier";
+    if (GEditor)
+    {
+        if (UAssetEditorSubsystem* AssetEditorSubsystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>())
+        {
+            AssetEditorSubsystem->OpenEditorForAsset(Path, EAssetTypeActivationOpenedMethod::Edit);
+        }
+    }
+}
+
+void UEUW_EditorWidget::ConvertAnimationScale(float Scale, bool bUnrotateRootBone)
+{
+    if (GetAM())
+    {
+        GetAM()->ScaleAnimation(Scale, bUnrotateRootBone);
+    }
+    else
+    {
+        FMessageDialog::Open(
+            EAppMsgType::Ok,
+            FText::FromString(TEXT("AM is not valid.")),
+            FText::FromString(TEXT("Error"))
+        );
+    }
+}
+
 UAAU_AutoTextureMapping* UEUW_EditorWidget::GetAAU()
 {
     if (!AAU)
@@ -214,6 +243,15 @@ UAAU_AutoTextureMapping* UEUW_EditorWidget::GetAAU()
         AAU = NewObject<UAAU_AutoTextureMapping>(this, AAU_Class);
     }
     return AAU;
+}
+
+UAAU_AnimModifier* UEUW_EditorWidget::GetAM()
+{
+    if (!AM)
+    {
+        AM = NewObject<UAAU_AnimModifier>(this, AM_Class);
+    }
+    return AM;
 }
 
 UVersionChecker* UEUW_EditorWidget::GetVC()

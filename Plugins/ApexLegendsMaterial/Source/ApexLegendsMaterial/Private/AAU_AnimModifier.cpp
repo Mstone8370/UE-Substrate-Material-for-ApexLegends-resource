@@ -46,7 +46,12 @@ void UAAU_AnimModifier::ScaleAnimation(float Scale, bool bUnrotateRootBone)
         }
         else
         {
-            UE_LOG(LogTemp, Error, TEXT("[Apex Legends Tool] Duplication Failed"));
+            UE_LOG(LogTemp, Error, TEXT("[Apex Legends Tool] Asset Duplication Failed"));
+            FMessageDialog::Open(
+                EAppMsgType::Ok,
+                FText::FromString(TEXT("Asset Duplication Failed.")),
+                FText::FromString(TEXT("Error"))
+            );
         }
     }
 }

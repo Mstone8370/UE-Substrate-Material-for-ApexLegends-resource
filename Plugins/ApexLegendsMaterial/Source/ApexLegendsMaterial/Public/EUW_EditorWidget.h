@@ -7,6 +7,7 @@
 #include "EUW_EditorWidget.generated.h"
 
 class UAAU_AutoTextureMapping;
+class UAAU_AnimModifier;
 class UVersionChecker;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCheckedUpdateSignature, bool, bNewVersionAvailable);
@@ -44,10 +45,19 @@ protected:
 	void CheckUpdate();
 
 	UFUNCTION(BlueprintCallable, Category = "Apex Legends Tool")
-	void OpenAAU();
+	void OpenATM();
+
+	UFUNCTION(BlueprintCallable, Category = "Apex Legends Tool")
+	void OpenAM();
+
+	UFUNCTION(BlueprintCallable, Category = "Apex Legends Tool")
+	void ConvertAnimationScale(float Scale, bool bUnrotateRootBone);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Apex Legends Tool")
 	TSubclassOf<UAAU_AutoTextureMapping> AAU_Class;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Apex Legends Tool")
+	TSubclassOf<UAAU_AnimModifier> AM_Class;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnCheckedUpdateSignature OnCheckedUpdateDelegate;
@@ -57,6 +67,11 @@ private:
 	TObjectPtr<UAAU_AutoTextureMapping> AAU;
 
 	UAAU_AutoTextureMapping* GetAAU();
+
+	UPROPERTY()
+	TObjectPtr<UAAU_AnimModifier> AM;
+
+	UAAU_AnimModifier* GetAM();
 
 	UPROPERTY()
 	TObjectPtr<UVersionChecker> VC;
