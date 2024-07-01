@@ -83,8 +83,10 @@ void FApexLegendsMaterialModule::PluginButtonClicked()
 void FApexLegendsMaterialModule::LoadUtilityBlueprint()
 {
     // Load Util
-    const FString Path = "/ApexLegendsMaterial/Util/BP_AutoTextureMapping";
-    StaticLoadObject(UObject::StaticClass(), nullptr, *Path);
+    const FString Path_ATM = "/ApexLegendsMaterial/Util/BP_AutoTextureMapping";
+    const FString Path_AM = "/ApexLegendsMaterial/Util/BP_AnimModifier";
+    StaticLoadObject(UObject::StaticClass(), nullptr, *Path_ATM);
+    StaticLoadObject(UObject::StaticClass(), nullptr, *Path_AM);
 }
 
 #undef LOCTEXT_NAMESPACE

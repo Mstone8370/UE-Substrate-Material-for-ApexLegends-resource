@@ -64,13 +64,13 @@ void UAAU_AutoTextureMapping::DisconnectAllMaterials()
     TArray<FAssetData> SelectedAssetDatas = UEditorUtilityLibrary::GetSelectedAssetData();
     for (FAssetData& SelectedAssetData : SelectedAssetDatas)
     {
-        UObject* SelectObject = SelectedAssetData.GetAsset();
-        if (!SelectObject || !(SelectObject->IsA<USkeletalMesh>() || SelectObject->IsA<UStaticMesh>()))
+        UObject* SelectedObject = SelectedAssetData.GetAsset();
+        if (!SelectedObject || !(SelectedObject->IsA<USkeletalMesh>() || SelectedObject->IsA<UStaticMesh>()))
         {
             continue;
         }
 
-        if (USkeletalMesh* SK = Cast<USkeletalMesh>(SelectObject))
+        if (USkeletalMesh* SK = Cast<USkeletalMesh>(SelectedObject))
         {
             TArray<FSkeletalMaterial>& Materials = SK->GetMaterials();
             for (FSkeletalMaterial& Material : Materials)
@@ -78,7 +78,7 @@ void UAAU_AutoTextureMapping::DisconnectAllMaterials()
                 Material.MaterialInterface = nullptr;
             }
         }
-        if (UStaticMesh* SM = Cast<UStaticMesh>(SelectObject))
+        if (UStaticMesh* SM = Cast<UStaticMesh>(SelectedObject))
         {
             TArray<FStaticMaterial>& Materials = SM->GetStaticMaterials();
             for (FStaticMaterial& Material : Materials)
@@ -88,10 +88,10 @@ void UAAU_AutoTextureMapping::DisconnectAllMaterials()
         }
 
         // Update Object
-        SelectObject->PostEditChange();
+        SelectedObject->PostEditChange();
 
         // Save Object
-        const FString ObjectPath = SelectObject->GetPathName();
+        const FString ObjectPath = SelectedObject->GetPathName();
         const FString FilePath = FPaths::GetBaseFilename(ObjectPath, false);
         UEditorAssetLibrary::SaveAsset(FilePath, false);
     }
