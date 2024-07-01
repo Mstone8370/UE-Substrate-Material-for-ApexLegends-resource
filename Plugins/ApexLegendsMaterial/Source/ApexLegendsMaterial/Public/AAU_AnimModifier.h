@@ -20,7 +20,4 @@ public:
 
 protected:
 	void ScaleAnimation_Internal(UObject* Object, float Scale, bool bUnrotateRootBone);
-
-	UPROPERTY(EditDefaultsOnly)
-	FName RootBoneName = FName("jx_c_delta");
 };

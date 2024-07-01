@@ -81,7 +81,6 @@ void UAAU_AnimModifier::ScaleAnimation_Internal(UObject* Object, float Scale, bo
     {
         const FName& BoneName = RefBoneInfo[i].Name;
         const FTransform& RefBoneTransform = RefBonePose[i];
-        const bool bIsRootBone = BoneName.IsEqual(RootBoneName);
 
         // Get animation bone transforms
         TArray<FTransform> BoneTrack;
@@ -104,7 +103,7 @@ void UAAU_AnimModifier::ScaleAnimation_Internal(UObject* Object, float Scale, bo
             const FVector ScaledBoneLocation = RefBoneLocation + (DeltaDirection * (DeltaLength * Scale));
 
             FQuat BoneRotation = Transform.GetRotation();
-            if (bUnrotateRootBone && bIsRootBone)
+            if (bUnrotateRootBone && i == 0)
             {
                 FQuat RotationQuat = FRotator(0.f, 0.f, -90.f).Quaternion();
                 BoneRotation = RotationQuat * BoneRotation;
