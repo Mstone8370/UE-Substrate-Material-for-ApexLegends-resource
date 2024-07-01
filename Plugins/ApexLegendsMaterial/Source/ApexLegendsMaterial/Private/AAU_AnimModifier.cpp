@@ -68,6 +68,10 @@ void UAAU_AnimModifier::ScaleAnimation_Internal(UObject* Object, float Scale, bo
     IAnimationDataModel* Model = AnimSeq->GetDataModel();
     IAnimationDataController& AnimDataController = AnimSeq->GetController();
 
+    // Show Dialog
+    FScopedSlowTask ProgressDialog(BoneNum, FText::FromString(FString("Converting Animation Scale...")));
+    ProgressDialog.MakeDialog();
+
     for (int32 i = 0; i < BoneNum; i++)
     {
         const FName& BoneName = RefBoneInfo[i].Name;
@@ -108,8 +112,9 @@ void UAAU_AnimModifier::ScaleAnimation_Internal(UObject* Object, float Scale, bo
 
         // Set scale bone track keys
         AnimDataController.SetBoneTrackKeys(BoneName, PositionalKeys, RotationalKeys, ScalingKeys);
-    }
 
+        ProgressDialog.EnterProgressFrame(1, FText::FromString(FString::Printf(TEXT("Converting Animation Scale... [%d/%d]"), i + 1, BoneNum)));
+    }
     AnimSeq->MarkPackageDirty();
     AnimSeq->PostEditChange();
 }
