@@ -48,9 +48,6 @@ protected:
 	void OpenATM();
 
 	UFUNCTION(BlueprintCallable, Category = "Apex Legends Tool")
-	void OpenAM();
-
-	UFUNCTION(BlueprintCallable, Category = "Apex Legends Tool")
 	void ConvertAnimationScale(float Scale, bool bUnrotateRootBone);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Apex Legends Tool")

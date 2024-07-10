@@ -208,18 +208,6 @@ void UEUW_EditorWidget::OpenATM()
     }
 }
 
-void UEUW_EditorWidget::OpenAM()
-{
-    const FString Path = "/ApexLegendsMaterial/Util/BP_AnimModifier";
-    if (GEditor)
-    {
-        if (UAssetEditorSubsystem* AssetEditorSubsystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>())
-        {
-            AssetEditorSubsystem->OpenEditorForAsset(Path, EAssetTypeActivationOpenedMethod::Edit);
-        }
-    }
-}
-
 void UEUW_EditorWidget::ConvertAnimationScale(float Scale, bool bUnrotateRootBone)
 {
     if (GetAM())
