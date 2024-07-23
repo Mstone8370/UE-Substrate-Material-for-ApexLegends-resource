@@ -67,7 +67,7 @@ void UAAU_AnimModifier::ScaleAnimation_Internal(UObject* Object, float Scale, bo
     }
 
     // Get base pose info
-    USkeleton* Skeleton = AnimSeq->GetSkeleton();
+    const USkeleton* Skeleton = AnimSeq->GetSkeleton();
     const TArray<FTransform>& RefBonePose = Skeleton->GetReferenceSkeleton().GetRawRefBonePose();
     const TArray<FMeshBoneInfo>& RefBoneInfo = Skeleton->GetReferenceSkeleton().GetRawRefBoneInfo();
     const int32 BoneNum = RefBonePose.Num();
@@ -76,36 +76,45 @@ void UAAU_AnimModifier::ScaleAnimation_Internal(UObject* Object, float Scale, bo
         return;
     }
 
-    IAnimationDataModel* AnimDataModel = AnimSeq->GetDataModel();
+    const IAnimationDataModel* AnimDataModel = AnimSeq->GetDataModel();
     IAnimationDataController& AnimDataController = AnimSeq->GetController();
+
+    const int32 KeyNum = AnimDataModel->GetNumberOfKeys();
 
     // Show Dialog
     FScopedSlowTask ProgressDialog(BoneNum, FText::FromString(FString("Converting Animation Scale...")));
     ProgressDialog.MakeDialog();
 
     // Start
-    TArray<FTransform> root;
-    TArray<FTransform> delta;
-    TArray<FTransform> start;
-
-    for (int32 i = 0; i < BoneNum; i++)
+    TArray<FTransform> RootRelativeStart;
+    if (bStart)
     {
-        const FName& BoneName = RefBoneInfo[i].Name;
-        const FTransform& RefBoneTransform = RefBonePose[i];
+        for (int32 KeyIdx = 0; KeyIdx < KeyNum; KeyIdx++)
+        {
+            RootRelativeStart.Add(FTransform::Identity);
+        }
+    }
+
+    for (int32 BoneIdx = 0; BoneIdx < BoneNum; BoneIdx++)
+    {
+        const FName& BoneName = RefBoneInfo[BoneIdx].Name;
+        const FTransform& RefBoneTransform = RefBonePose[BoneIdx];
 
         // Get animation bone transforms
-        TArray<FTransform> BoneTrack;
-        AnimDataModel->GetBoneTrackTransforms(BoneName, BoneTrack);
+        TArray<FTransform> OriginalBoneTrack;
+        AnimDataModel->GetBoneTrackTransforms(BoneName, OriginalBoneTrack);
 
         TArray<FVector> PositionalKeys;
         TArray<FQuat> RotationalKeys;
         TArray<FVector> ScalingKeys;
 
         // Fill scaled bone track keys
-        for (const FTransform& Transform : BoneTrack)
+        for (int32 KeyIdx = 0; KeyIdx < KeyNum; KeyIdx++)
         {
+            const FTransform& OriginalTransform = OriginalBoneTrack[KeyIdx];
+
             const FVector RefBoneLocation = RefBoneTransform.GetLocation();
-            const FVector AnimBoneLocation = Transform.GetLocation();
+            const FVector AnimBoneLocation = OriginalTransform.GetLocation();
 
             const FVector DeltaLocation = AnimBoneLocation - RefBoneLocation;
             const FVector DeltaDirection = DeltaLocation.GetSafeNormal();
@@ -113,8 +122,8 @@ void UAAU_AnimModifier::ScaleAnimation_Internal(UObject* Object, float Scale, bo
 
             const FVector ScaledBoneLocation = RefBoneLocation + (DeltaDirection * (DeltaLength * Scale));
 
-            FQuat BoneRotation = Transform.GetRotation();
-            if (bUnrotateRootBone && i == 0)
+            FQuat BoneRotation = OriginalTransform.GetRotation();
+            if (bUnrotateRootBone && BoneIdx == 0 /* BoneIdx == 0: root bone */)
             {
                 FQuat RotationQuat = FRotator(0.f, 0.f, -90.f).Quaternion();
                 BoneRotation = RotationQuat * BoneRotation;
@@ -122,48 +131,47 @@ void UAAU_AnimModifier::ScaleAnimation_Internal(UObject* Object, float Scale, bo
 
             PositionalKeys.Add(ScaledBoneLocation);
             RotationalKeys.Add(BoneRotation);
-            ScalingKeys.Add(Transform.GetScale3D());
+            ScalingKeys.Add(OriginalTransform.GetScale3D());
 
-            if (bStart)
+            if (bStart && BoneIdx < 3 /* BoneIdx == 0: root bone, BoneIdx == 1: delta bone, BoneIdx == 2: start bone */)
             {
-                if (i == 0)
-                {
-                    root.Add(FTransform(BoneRotation, ScaledBoneLocation, Transform.GetScale3D()));
-                }
-                if (i == 1)
-                {
-                    delta.Add(FTransform(BoneRotation, ScaledBoneLocation, Transform.GetScale3D()));
-                }
-                if (i == 2)
-                {
-                    start.Add(FTransform(BoneRotation, ScaledBoneLocation, Transform.GetScale3D()));
-                }
+                /**
+                * Space transformation accumulation.
+                * UKismetMathLibrary::ComposeTransforms(A, B) == A * B.
+                * ChildTransformInParentSpace = ChildLocalTransform * ParentTransform;
+                */
+                RootRelativeStart[KeyIdx] = UKismetMathLibrary::ComposeTransforms(
+                    FTransform(BoneRotation, ScaledBoneLocation, OriginalTransform.GetScale3D()),
+                    RootRelativeStart[KeyIdx]
+                );
             }
         }
 
         // Set scale bone track keys
         AnimDataController.SetBoneTrackKeys(BoneName, PositionalKeys, RotationalKeys, ScalingKeys);
 
-        ProgressDialog.EnterProgressFrame(1, FText::FromString(FString::Printf(TEXT("Converting Animation Scale... [%d/%d]"), i + 1, BoneNum)));
+        ProgressDialog.EnterProgressFrame(1, FText::FromString(FString::Printf(TEXT("Converting Animation Scale... [%d/%d]"), BoneIdx + 1, BoneNum)));
     }
 
     if (bStart)
     {
+        const FName& RootBoneName = RefBoneInfo[0].Name;
+
+        TArray<FTransform> RootTrack;
+        AnimDataModel->GetBoneTrackTransforms(RootBoneName, RootTrack);
+
         TArray<FVector> PositionalKeys;
         TArray<FQuat> RotationalKeys;
         TArray<FVector> ScalingKeys;
 
-        int32 Keys = AnimDataModel->GetNumberOfKeys();
-        for (int32 i = 0; i < Keys; i++)
+        for (int32 KeyIdx = 0; KeyIdx < KeyNum; KeyIdx++)
         {
-            FTransform RootRelativeStart = start[i] * delta[i] * root[i];
-
-            PositionalKeys.Add(root[i].GetLocation() - RootRelativeStart.GetLocation());
-            RotationalKeys.Add(root[i].GetRotation());
-            ScalingKeys.Add(root[i].GetScale3D());
+            PositionalKeys.Add(RootTrack[KeyIdx].GetLocation() - RootRelativeStart[KeyIdx].GetLocation());
+            RotationalKeys.Add(RootTrack[KeyIdx].GetRotation());
+            ScalingKeys.Add(RootTrack[KeyIdx].GetScale3D());
         }
 
-        AnimDataController.SetBoneTrackKeys(RefBoneInfo[0].Name, PositionalKeys, RotationalKeys, ScalingKeys);
+        AnimDataController.SetBoneTrackKeys(RootBoneName, PositionalKeys, RotationalKeys, ScalingKeys);
     }
 
     AnimSeq->PostEditChange();
