@@ -16,12 +16,8 @@ class APEXLEGENDSMATERIAL_API UAAU_AnimModifier : public UAssetActionUtility
 	
 public:
 	UFUNCTION(CallInEditor, Category = "Apex Legends Tool", meta = (DisplayName = "Scale Animation"))
-	void ScaleAnimation(float Scale = 0.0254f, bool bUnrotateRootBone = false, UPARAM(DisplayName = "Start (unstable)") bool bStart = false);
+	void ScaleAnimation(float Scale = 0.0254f, bool bUnrotateRootBone = false, UPARAM(DisplayName = "jx_c_start Bone Relative Motion") bool bStart = false);
 
 protected:
 	void ScaleAnimation_Internal(UObject* Object, float Scale, bool bUnrotateRootBone, bool bStart);
-
-	FTransform GetStartTransform_RootRelative(const FTransform& root, const FTransform& delta, const FTransform& start);
-
-	FMatrix GetLocalTransformMatrix(const FVector& Translation, const FQuat& Rotation, const FVector& Scale);
 };

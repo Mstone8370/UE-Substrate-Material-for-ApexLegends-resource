@@ -12,6 +12,8 @@
 #include "EditorAssetLibrary.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 
+#include "Kismet/KismetMathLibrary.h"
+
 void UAAU_AnimModifier::ScaleAnimation(float Scale, bool bUnrotateRootBone, bool bStart)
 {
     if (Scale < UE_KINDA_SMALL_NUMBER)
@@ -81,11 +83,10 @@ void UAAU_AnimModifier::ScaleAnimation_Internal(UObject* Object, float Scale, bo
     FScopedSlowTask ProgressDialog(BoneNum, FText::FromString(FString("Converting Animation Scale...")));
     ProgressDialog.MakeDialog();
 
-    // Start Test
+    // Start
     TArray<FTransform> root;
     TArray<FTransform> delta;
     TArray<FTransform> start;
-    FName RootBoneName = RefBoneInfo[0].Name;
 
     for (int32 i = 0; i < BoneNum; i++)
     {
@@ -125,18 +126,17 @@ void UAAU_AnimModifier::ScaleAnimation_Internal(UObject* Object, float Scale, bo
 
             if (bStart)
             {
-                // Start Test
-                if (BoneName.IsEqual(RootBoneName))
+                if (i == 0)
                 {
-                    root.Add(FTransform(BoneRotation, ScaledBoneLocation, FVector::OneVector));
+                    root.Add(FTransform(BoneRotation, ScaledBoneLocation, Transform.GetScale3D()));
                 }
-                if (BoneName.IsEqual(FName("jx_c_delta"))) // TODO: The bone names differ for each skeleton. Use BoneInfo index?
+                if (i == 1)
                 {
-                    delta.Add(FTransform(BoneRotation, ScaledBoneLocation, FVector::OneVector));
+                    delta.Add(FTransform(BoneRotation, ScaledBoneLocation, Transform.GetScale3D()));
                 }
-                if (BoneName.IsEqual(FName("jx_c_start")))
+                if (i == 2)
                 {
-                    start.Add(FTransform(BoneRotation, ScaledBoneLocation, FVector::OneVector));
+                    start.Add(FTransform(BoneRotation, ScaledBoneLocation, Transform.GetScale3D()));
                 }
             }
         }
@@ -149,61 +149,23 @@ void UAAU_AnimModifier::ScaleAnimation_Internal(UObject* Object, float Scale, bo
 
     if (bStart)
     {
-        // TODO: Change from adding additive curves to modifying the animation directly.
-        // Start Test
-        FAnimationCurveIdentifier Id(RootBoneName, ERawCurveTrackTypes::RCT_Transform);
-        double PlayLength = AnimDataModel->GetPlayLength();
+        TArray<FVector> PositionalKeys;
+        TArray<FQuat> RotationalKeys;
+        TArray<FVector> ScalingKeys;
+
         int32 Keys = AnimDataModel->GetNumberOfKeys();
-        double FrameRate = AnimDataModel->GetFrameRate().AsDecimal();
-        double Interval = AnimDataModel->GetFrameRate().AsInterval();
-
-        AnimDataController.AddCurve(Id);
-        TArray<FTransform> Transforms;
-        TArray<float> Times;
-        float CurrentTime = 0.f;
-
         for (int32 i = 0; i < Keys; i++)
         {
-            FTransform x = GetStartTransform_RootRelative(root[i], delta[i], start[i]);
+            FTransform RootRelativeStart = start[i] * delta[i] * root[i];
 
-            FRotator originalRootRotation = root[i].GetRotation().Rotator();
-            FRotator startRotation = x.GetRotation().Rotator();
-
-            FRotator deltaRotation = (originalRootRotation - startRotation).GetNormalized();
-
-            Transforms.Add(FTransform(deltaRotation, -x.GetLocation()));
-            Times.Add(CurrentTime);
-            CurrentTime += Interval;
+            PositionalKeys.Add(root[i].GetLocation() - RootRelativeStart.GetLocation());
+            RotationalKeys.Add(root[i].GetRotation());
+            ScalingKeys.Add(root[i].GetScale3D());
         }
-        AnimDataController.SetTransformCurveKeys(Id, Transforms, Times);
+
+        AnimDataController.SetBoneTrackKeys(RefBoneInfo[0].Name, PositionalKeys, RotationalKeys, ScalingKeys);
     }
 
     AnimSeq->PostEditChange();
     AnimSeq->MarkPackageDirty();
-}
-
-FTransform UAAU_AnimModifier::GetStartTransform_RootRelative(const FTransform& root, const FTransform& delta, const FTransform& start)
-{
-    FMatrix LocalTransformStart = GetLocalTransformMatrix(start.GetLocation(), start.GetRotation(), start.GetScale3D());
-    FMatrix LocalTransformDelta = GetLocalTransformMatrix(delta.GetLocation(), delta.GetRotation(), delta.GetScale3D());
-    FMatrix LocalTransformRoot = GetLocalTransformMatrix(root.GetLocation(), root.GetRotation(), root.GetScale3D());
-    
-    FMatrix WorldTransform = LocalTransformStart * LocalTransformDelta * LocalTransformRoot;
-
-    FVector Location = WorldTransform.GetOrigin();
-    FQuat Rotation = WorldTransform.ToQuat();
-    FVector Scale = WorldTransform.GetScaleVector();
-
-    return FTransform(Rotation, Location, Scale);
-}
-
-FMatrix UAAU_AnimModifier::GetLocalTransformMatrix(const FVector& Translation, const FQuat& Rotation, const FVector& Scale)
-{
-    FMatrix ScaleMatrix = FScaleMatrix(Scale);
-    FMatrix RotationMatrix = FRotationMatrix::Make(Rotation);
-    FMatrix TranslationMatrix = FTranslationMatrix(Translation);
-
-    FMatrix LocalTransform = ScaleMatrix * RotationMatrix * TranslationMatrix;
-
-    return LocalTransform;
 }
