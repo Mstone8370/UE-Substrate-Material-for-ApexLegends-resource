@@ -166,8 +166,13 @@ void UAAU_AnimModifier::ScaleAnimation_Internal(UObject* Object, float Scale, bo
 
         for (int32 KeyIdx = 0; KeyIdx < KeyNum; KeyIdx++)
         {
-            PositionalKeys.Add(RootTrack[KeyIdx].GetLocation() - RootRelativeStart[KeyIdx].GetLocation());
-            RotationalKeys.Add(RootTrack[KeyIdx].GetRotation());
+            FVector RootTranslation = RootTrack[KeyIdx].GetLocation() - RootRelativeStart[KeyIdx].GetLocation();
+
+            const FQuat RotationQuat = RootRelativeStart[KeyIdx].GetRotation().GetAxisX().ToOrientationQuat().Inverse();
+            RootTranslation = RotationQuat.RotateVector(RootTranslation);
+
+            PositionalKeys.Add(RootTranslation);
+            RotationalKeys.Add(RotationQuat* RootTrack[KeyIdx].GetRotation());
             ScalingKeys.Add(RootTrack[KeyIdx].GetScale3D());
         }
 
