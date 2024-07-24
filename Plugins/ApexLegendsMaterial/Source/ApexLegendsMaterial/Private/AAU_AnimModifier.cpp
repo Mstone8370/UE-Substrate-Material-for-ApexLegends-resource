@@ -35,16 +35,35 @@ void UAAU_AnimModifier::ModifyAnimation(float Scale, bool bUnrotateRootBone, boo
         const FString FolderPath = FPaths::GetPath(FilePath);
         const FString FileName = FPaths::GetBaseFilename(FilePath, true);
 
-        const FString NewFileName = FileName + FString(TEXT("_Scaled"));
-        const FString NewFilePath = FPaths::ConvertRelativePathToFull(FolderPath, NewFileName);
+        const FString ModifiedFileName = FileName + FString(TEXT("_Modified"));
         
-        if (UObject* DuplicatedObject = UEditorAssetLibrary::DuplicateLoadedAsset(SelectedObject, NewFilePath))
+        int32 DuplicateTryMax = 999;
+        UObject* DuplicatedObject = nullptr;
+        for (int32 DuplicateTry = 0; DuplicateTry < DuplicateTryMax; DuplicateTry++)
+        {
+            FString NewFileName = ModifiedFileName;
+            if (DuplicateTry > 0)
+            {
+                NewFileName += ("_" + FString::FromInt(DuplicateTry));
+            }
+            const FString NewFilePath = FPaths::ConvertRelativePathToFull(FolderPath, NewFileName);
+
+            DuplicatedObject = UEditorAssetLibrary::DuplicateLoadedAsset(SelectedObject, NewFilePath);
+            if (DuplicatedObject)
+            {
+                break;
+            }
+        }
+
+        if (DuplicatedObject)
         {
             FAssetRegistryModule::AssetCreated(DuplicatedObject);
 
             ModifyAnimation_Internal(DuplicatedObject, Scale, bUnrotateRootBone, bStart);
 
-            UEditorAssetLibrary::SaveAsset(NewFilePath, false);
+            const FString DuplicatedObjectPath = DuplicatedObject->GetPathName();
+            const FString DuplicatedFilePath = FPaths::GetBaseFilename(DuplicatedObjectPath, false);
+            UEditorAssetLibrary::SaveAsset(DuplicatedFilePath, false);
         }
         else
         {
