@@ -48,7 +48,7 @@ protected:
 	void OpenATM();
 
 	UFUNCTION(BlueprintCallable, Category = "Apex Legends Tool")
-	void ConvertAnimationScale(float Scale, bool bUnrotateRootBone);
+	void ModifyAnimation(float Scale, bool bUnrotateRootBone, bool bStart);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Apex Legends Tool")
 	TSubclassOf<UAAU_AutoTextureMapping> AAU_Class;

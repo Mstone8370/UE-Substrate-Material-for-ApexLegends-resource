@@ -14,7 +14,7 @@
 
 #include "Kismet/KismetMathLibrary.h"
 
-void UAAU_AnimModifier::ScaleAnimation(float Scale, bool bUnrotateRootBone, bool bStart)
+void UAAU_AnimModifier::ModifyAnimation(float Scale, bool bUnrotateRootBone, bool bStart)
 {
     if (Scale < UE_KINDA_SMALL_NUMBER)
     {
@@ -42,7 +42,7 @@ void UAAU_AnimModifier::ScaleAnimation(float Scale, bool bUnrotateRootBone, bool
         {
             FAssetRegistryModule::AssetCreated(DuplicatedObject);
 
-            ScaleAnimation_Internal(DuplicatedObject, Scale, bUnrotateRootBone, bStart);
+            ModifyAnimation_Internal(DuplicatedObject, Scale, bUnrotateRootBone, bStart);
 
             UEditorAssetLibrary::SaveAsset(NewFilePath, false);
         }
@@ -58,7 +58,7 @@ void UAAU_AnimModifier::ScaleAnimation(float Scale, bool bUnrotateRootBone, bool
     }
 }
 
-void UAAU_AnimModifier::ScaleAnimation_Internal(UObject* Object, float Scale, bool bUnrotateRootBone, bool bStart)
+void UAAU_AnimModifier::ModifyAnimation_Internal(UObject* Object, float Scale, bool bUnrotateRootBone, bool bStart)
 {
     UAnimSequence* AnimSeq = Cast<UAnimSequence>(Object);
     if (!AnimSeq)

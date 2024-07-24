@@ -208,11 +208,11 @@ void UEUW_EditorWidget::OpenATM()
     }
 }
 
-void UEUW_EditorWidget::ConvertAnimationScale(float Scale, bool bUnrotateRootBone)
+void UEUW_EditorWidget::ModifyAnimation(float Scale, bool bUnrotateRootBone, bool bStart)
 {
     if (GetAM())
     {
-        GetAM()->ScaleAnimation(Scale, bUnrotateRootBone);
+        GetAM()->ModifyAnimation(Scale, bUnrotateRootBone, bStart);
     }
     else
     {
