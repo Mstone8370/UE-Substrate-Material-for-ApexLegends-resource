@@ -97,7 +97,7 @@ void UAAU_AutoTextureMapping::DisconnectAllMaterials()
     }
 }
 
-void UAAU_AutoTextureMapping::AutoTextureMapping(FString TextureFolderNameOverride)
+void UAAU_AutoTextureMapping::AutoTextureMapping(FString TextureFolderNameOverride, bool bFlipNormalGreen)
 {
     if (!CheckMasterMaterial())
     {
@@ -136,7 +136,7 @@ void UAAU_AutoTextureMapping::AutoTextureMapping(FString TextureFolderNameOverri
     GetTexturePaths(SelectedObjects, TextureFolderName, TexturePaths);
     
     // Read Texture and connect to Material Instance
-    MapTexturesToMaterial(MaterialMap, TexturePaths);
+    MapTexturesToMaterial(MaterialMap, TexturePaths, bFlipNormalGreen);
 
     // Update Mesh Object
     for (UObject* Obj : SelectedObjects)
@@ -355,7 +355,7 @@ void UAAU_AutoTextureMapping::GetTexturePaths(TSet<UObject*> Objects, const FStr
     }
 }
 
-void UAAU_AutoTextureMapping::MapTexturesToMaterial(TMap<FString, TArray<UMaterialInstance*>>& InMaterialMap, TSet<FString>& InTexturePaths)
+void UAAU_AutoTextureMapping::MapTexturesToMaterial(TMap<FString, TArray<UMaterialInstance*>>& InMaterialMap, TSet<FString>& InTexturePaths, bool bFlipNormalGreen)
 {
     for (const FString& TexturePath : InTexturePaths)
     {
@@ -389,13 +389,14 @@ void UAAU_AutoTextureMapping::MapTexturesToMaterial(TMap<FString, TArray<UMateri
 
         // Load Texture
         UTexture2D* Texture = Cast<UTexture2D>(UEditorAssetLibrary::LoadAsset(TexturePath));
-        if (LinearTextureTypes.Contains(TextureType) && Texture->SRGB > 0)
+        if (LinearTextureTypes.Contains(TextureType))
         {
             Texture->SRGB = 0;
             if (TextureType == TEXT("normalTexture") || TextureType == TEXT("nml"))
             {
                 Texture->LODGroup = TextureGroup::TEXTUREGROUP_WorldNormalMap;
                 Texture->CompressionSettings = TextureCompressionSettings::TC_Normalmap;
+                Texture->bFlipGreenChannel = bFlipNormalGreen;
             }
             if (TextureType == TEXT("anisoSpecDirTexture"))
             {

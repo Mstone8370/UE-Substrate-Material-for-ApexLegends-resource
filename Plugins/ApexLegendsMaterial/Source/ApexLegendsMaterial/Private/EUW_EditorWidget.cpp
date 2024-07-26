@@ -147,11 +147,11 @@ void UEUW_EditorWidget::ChangeSlotName_Internal(FName& MatSlotName, FString NewS
     }
 }
 
-void UEUW_EditorWidget::AutoTextureMapping(FString TextureFolderName)
+void UEUW_EditorWidget::AutoTextureMapping(FString TextureFolderName, bool bFlipNormalGreen)
 {
     if (GetAAU())
     {
-        GetAAU()->AutoTextureMapping(TextureFolderName);
+        GetAAU()->AutoTextureMapping(TextureFolderName, bFlipNormalGreen);
     }
     else
     {

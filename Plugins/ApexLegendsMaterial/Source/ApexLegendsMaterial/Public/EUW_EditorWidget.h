@@ -33,7 +33,7 @@ protected:
 	void ChangeSlotName_Internal(FName& MatSlotName, FString NewSkinName, TMap<FName, FName>& SucceededMap, TMap<FName, FName>& FailedMap);
 
 	UFUNCTION(BlueprintCallable, Category = "Apex Legends Tool")
-	void AutoTextureMapping(FString TextureFolderName);
+	void AutoTextureMapping(FString TextureFolderName, bool bFlipNormalGreen);
 
 	UFUNCTION(BlueprintCallable, Category = "Apex Legends Tool")
 	void DisconnectAllMaterials();

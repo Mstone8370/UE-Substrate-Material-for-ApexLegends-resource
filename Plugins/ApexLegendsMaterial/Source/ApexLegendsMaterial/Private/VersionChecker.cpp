@@ -63,9 +63,9 @@ void UVersionChecker::OnReceivedResponse(FHttpRequestPtr Request, FHttpResponseP
                     {
                         const int32 Latest = FCString::Atoi(*Matcher_Latest.GetCaptureGroup(i));
                         const int32 Current = FCString::Atoi(*Matcher_Current.GetCaptureGroup(i));
-                        if (Latest > Current)
+                        if (Latest != Current)
                         {
-                            bNewVersionAvailable = true;
+                            bNewVersionAvailable = Latest > Current;
                             break;
                         }
                     }

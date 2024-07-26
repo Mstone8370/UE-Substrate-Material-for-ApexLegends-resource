@@ -21,7 +21,7 @@ public:
 	void DisconnectAllMaterials();
 
 	UFUNCTION(CallInEditor, Category = "Apex Legends Tool", meta = (DisplayName = "Auto Texture Mapping"))
-	void AutoTextureMapping(UPARAM(DisplayName = "Custom Texture Folder") FString TextureFolderNameOverride);
+	void AutoTextureMapping(UPARAM(DisplayName = "Custom Texture Folder") FString TextureFolderNameOverride, UPARAM(DisplayName = "Flip Normal Map Green Channel") bool bFlipNormalGreen);
 
 protected:
 	bool CheckMasterMaterial();
@@ -40,7 +40,7 @@ protected:
 
 	void GetTexturePaths(TSet<UObject*> Objects, const FString& TextureFolderName, TSet<FString>& OutPaths);
 
-	void MapTexturesToMaterial(TMap<FString, TArray<UMaterialInstance*>>& InMaterialMap, TSet<FString>& InTexturePaths);
+	void MapTexturesToMaterial(TMap<FString, TArray<UMaterialInstance*>>& InMaterialMap, TSet<FString>& InTexturePaths, bool bFlipNormalGreen);
 
 	void SetMaterialParamValue(UMaterialInstance* MatInst, const FName& ParamName, FMaterialParameterValue ParamValue);
 
