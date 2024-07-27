@@ -131,7 +131,9 @@ This project's Unreal Engine version is ```5.4```
 
   [Auto Texture Mapping tool with recolor skins (v1.2.0)](https://youtu.be/14Dsa7mgJkU)
 
-  [Unreal Engine Sequencer work with animations (v.1.0.0)](https://youtu.be/UpkA9dgYGuA)
+  [Unreal Engine Sequencer work with animations (v1.0.0)](https://youtu.be/UpkA9dgYGuA)
+
+  [jx_c_start bone relative motion demo (v1.3.0)](https://youtu.be/UwCY1-t_AIE?si=Wug69pg2aO3KENnq)
 
 # Issues
 
