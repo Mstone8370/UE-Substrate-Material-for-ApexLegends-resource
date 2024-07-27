@@ -16,9 +16,9 @@
 
 void UAAU_AnimModifier::ModifyAnimation(float Scale, bool bUnrotateRootBone, bool bStart)
 {
-    if (Scale < UE_KINDA_SMALL_NUMBER)
+    if (Scale < UE_SMALL_NUMBER)
     {
-        Scale = 0.0254f;
+        Scale = 1.f;
     }
 
     TArray<FAssetData> SelectedAssetDatas = UEditorUtilityLibrary::GetSelectedAssetData();
@@ -101,7 +101,7 @@ void UAAU_AnimModifier::ModifyAnimation_Internal(UObject* Object, float Scale, b
     const int32 KeyNum = AnimDataModel->GetNumberOfKeys();
 
     // Show Dialog
-    FScopedSlowTask ProgressDialog(BoneNum, FText::FromString(FString("Converting Animation Scale...")));
+    FScopedSlowTask ProgressDialog(BoneNum, FText::FromString(FString("Modifying Animation...")));
     ProgressDialog.MakeDialog();
 
     // Start
@@ -169,7 +169,7 @@ void UAAU_AnimModifier::ModifyAnimation_Internal(UObject* Object, float Scale, b
         // Set scale bone track keys
         AnimDataController.SetBoneTrackKeys(BoneName, PositionalKeys, RotationalKeys, ScalingKeys);
 
-        ProgressDialog.EnterProgressFrame(1, FText::FromString(FString::Printf(TEXT("Converting Animation Scale... [%d/%d]"), BoneIdx + 1, BoneNum)));
+        ProgressDialog.EnterProgressFrame(1, FText::FromString(FString::Printf(TEXT("Modifying Animation... [%d/%d]"), BoneIdx + 1, BoneNum)));
     }
 
     if (bStart)
