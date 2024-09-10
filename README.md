@@ -1,3 +1,5 @@
+![main](https://github.com/Mstone8370/UE-Material-for-ApexLegends-Asset/assets/43489974/e2b148e8-2442-4c6a-a16a-719ddd93dcd9)
+
 ![sample](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/e134bd7b-f15d-433d-bec3-ca2ca31217d1)
 
 [Sample gif (7MB)](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/assets/43489974/1aa2e129-bd1f-4f88-92b8-50cace6838a2)
