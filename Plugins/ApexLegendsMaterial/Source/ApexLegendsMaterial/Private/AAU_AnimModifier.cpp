@@ -21,6 +21,11 @@ void UAAU_AnimModifier::ModifyAnimation(float Scale, bool bUnrotateRootBone, boo
         Scale = 1.f;
     }
 
+    if (FMath::IsNearlyEqual(Scale, 1.f) && !bUnrotateRootBone && !bStart)
+    {
+        return;
+    }
+
     TArray<FAssetData> SelectedAssetDatas = UEditorUtilityLibrary::GetSelectedAssetData();
     for (FAssetData& SelectedAssetData : SelectedAssetDatas)
     {
@@ -105,12 +110,12 @@ void UAAU_AnimModifier::ModifyAnimation_Internal(UObject* Object, float Scale, b
     ProgressDialog.MakeDialog();
 
     // Start
-    TArray<FTransform> RootRelativeStart;
+    TArray<FTransform> ComponentRelativeStart;
     if (bStart)
     {
         for (int32 KeyIdx = 0; KeyIdx < KeyNum; KeyIdx++)
         {
-            RootRelativeStart.Add(FTransform::Identity);
+            ComponentRelativeStart.Add(FTransform::Identity);
         }
     }
 
@@ -157,11 +162,11 @@ void UAAU_AnimModifier::ModifyAnimation_Internal(UObject* Object, float Scale, b
                 /**
                 * Space transformation accumulation.
                 * UKismetMathLibrary::ComposeTransforms(A, B) == A * B.
-                * ChildTransformInParentSpace = ChildLocalTransform * ParentTransform;
+                * ChildTransformInOuterParentSpace = ChildLocalTransform * ParentTransform;
                 */
-                RootRelativeStart[KeyIdx] = UKismetMathLibrary::ComposeTransforms(
+                ComponentRelativeStart[KeyIdx] = UKismetMathLibrary::ComposeTransforms(
                     FTransform(BoneRotation, ScaledBoneLocation, OriginalTransform.GetScale3D()),
-                    RootRelativeStart[KeyIdx]
+                    ComponentRelativeStart[KeyIdx]
                 );
             }
         }
@@ -185,13 +190,13 @@ void UAAU_AnimModifier::ModifyAnimation_Internal(UObject* Object, float Scale, b
 
         for (int32 KeyIdx = 0; KeyIdx < KeyNum; KeyIdx++)
         {
-            FVector RootTranslation = RootTrack[KeyIdx].GetLocation() - RootRelativeStart[KeyIdx].GetLocation();
+            FVector RootTranslation = RootTrack[KeyIdx].GetLocation() - ComponentRelativeStart[KeyIdx].GetLocation();
 
-            const FQuat RotationQuat = RootRelativeStart[KeyIdx].GetRotation().GetAxisX().ToOrientationQuat().Inverse();
+            const FQuat RotationQuat = ComponentRelativeStart[KeyIdx].GetRotation().GetAxisX().ToOrientationQuat().Inverse();
             RootTranslation = RotationQuat.RotateVector(RootTranslation);
 
             PositionalKeys.Add(RootTranslation);
-            RotationalKeys.Add(RotationQuat* RootTrack[KeyIdx].GetRotation());
+            RotationalKeys.Add(RotationQuat * RootTrack[KeyIdx].GetRotation());
             ScalingKeys.Add(RootTrack[KeyIdx].GetScale3D());
         }
 
