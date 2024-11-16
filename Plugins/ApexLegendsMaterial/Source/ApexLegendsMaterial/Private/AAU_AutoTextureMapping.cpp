@@ -173,95 +173,11 @@ void UAAU_AutoTextureMapping::SetMaterialInstances(UObject* MeshObject, TMap<FSt
 {
     if (USkeletalMesh* SkeletalMesh = Cast<USkeletalMesh>(MeshObject))
     {
-        SetMaterialInstances_SkeletalMesh(SkeletalMesh, OutMaterialMap);
+        SetMaterialInstances_Generic(SkeletalMesh, OutMaterialMap, &USkeletalMesh::GetMaterials);
     }
     else if (UStaticMesh* StaticMesh = Cast<UStaticMesh>(MeshObject))
     {
-        SetMaterialInstances_StaticMesh(StaticMesh, OutMaterialMap);
-    }
-}
-
-void UAAU_AutoTextureMapping::SetMaterialInstances_SkeletalMesh(USkeletalMesh* SkeletalMesh, TMap<FString, TArray<UMaterialInstance*>>& OutMaterialMap)
-{
-    // Set Material Instances
-    TArray<FSkeletalMaterial>& MaterialList = SkeletalMesh->GetMaterials();
-    for (FSkeletalMaterial& Material : MaterialList)
-    {
-        FName MaterialSlotName = Material.MaterialSlotName;
-        if (CustomMaterialMap.Contains(MaterialSlotName))
-        {
-            Material.MaterialInterface = *CustomMaterialMap.Find(MaterialSlotName);
-            continue;
-        }
-
-        // Trying cast Material Interface to Material Instance. If failed, create new Material Instance.
-        UMaterialInterface* MaterialInterface = Material.MaterialInterface;
-        UMaterialInstance* MaterialInstance = CastOrFindOrCreateMaterialInstance(
-            MaterialInterface,
-            FPaths::GetPath(SkeletalMesh->GetPathName()),
-            MaterialSlotName.ToString(),
-            MasterMaterial
-        );
-        if (!MaterialInstance)
-        {
-            continue;
-        }
-
-        // Set Material for when a new Material Instance is created
-        Material.MaterialInterface = MaterialInstance;
-
-        // Add to map for texture mapping
-        FString MaterialSlotNameStr = MaterialSlotName.ToString();
-        if (OutMaterialMap.Contains(MaterialSlotNameStr))
-        {
-            OutMaterialMap.Find(MaterialSlotNameStr)->Add(MaterialInstance);
-        }
-        else
-        {
-            OutMaterialMap.Add(MaterialSlotNameStr, TArray<UMaterialInstance*>({ MaterialInstance }));
-        }
-    }
-}
-
-void UAAU_AutoTextureMapping::SetMaterialInstances_StaticMesh(UStaticMesh* StaticMesh, TMap<FString, TArray<UMaterialInstance*>>& OutMaterialMap)
-{
-    // Set Material Instances
-    TArray<FStaticMaterial>& MaterialList = StaticMesh->GetStaticMaterials();
-    for (FStaticMaterial& Material : MaterialList)
-    {
-        FName MaterialSlotName = Material.MaterialSlotName;
-        if (CustomMaterialMap.Contains(MaterialSlotName))
-        {
-            Material.MaterialInterface = *CustomMaterialMap.Find(MaterialSlotName);
-            continue;
-        }
-
-        // Trying cast Material Interface to Material Instance. If failed, create new Material Instance.
-        UMaterialInterface* MaterialInterface = Material.MaterialInterface;
-        UMaterialInstance* MaterialInstance = CastOrFindOrCreateMaterialInstance(
-            MaterialInterface,
-            FPaths::GetPath(StaticMesh->GetPathName()),
-            MaterialSlotName.ToString(),
-            MasterMaterial
-        );
-        if (!MaterialInstance)
-        {
-            continue;
-        }
-
-        // Set Material for when a new Material Instance is created
-        Material.MaterialInterface = MaterialInstance;
-
-        // Add to map for texture mapping
-        FString MaterialSlotNameStr = MaterialSlotName.ToString();
-        if (OutMaterialMap.Contains(MaterialSlotNameStr))
-        {
-            OutMaterialMap.Find(MaterialSlotNameStr)->Add(MaterialInstance);
-        }
-        else
-        {
-            OutMaterialMap.Add(MaterialSlotNameStr, TArray<UMaterialInstance*>({ MaterialInstance }));
-        }
+        SetMaterialInstances_Generic(StaticMesh, OutMaterialMap, &UStaticMesh::GetStaticMaterials);
     }
 }
 
