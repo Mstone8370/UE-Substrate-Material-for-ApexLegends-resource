@@ -140,14 +140,17 @@ void UAAU_AnimModifier::ModifyAnimation_Internal(UObject* Object, float Scale, b
         {
             const FTransform& OriginalTransform = OriginalBoneTrack[KeyIdx];
 
-            const FVector RefBoneLocation = RefBoneTransform.GetLocation();
-            const FVector AnimBoneLocation = OriginalTransform.GetLocation();
+            FVector BoneLocation = OriginalTransform.GetLocation();
+            if (!FMath::IsNearlyEqual(Scale, 1.f))
+            {
+                const FVector RefBoneLocation = RefBoneTransform.GetLocation();
+                const FVector AnimBoneLocation = BoneLocation;
 
-            const FVector DeltaLocation = AnimBoneLocation - RefBoneLocation;
-            const FVector DeltaDirection = DeltaLocation.GetSafeNormal();
-            const double DeltaLength = DeltaLocation.Length();
-
-            const FVector ScaledBoneLocation = RefBoneLocation + (DeltaDirection * (DeltaLength * Scale));
+                const FVector DeltaLocation = AnimBoneLocation - RefBoneLocation;
+                const FVector ScaledBoneLocation = RefBoneLocation + (DeltaLocation * Scale);
+                
+                BoneLocation = ScaledBoneLocation;
+            }
 
             FQuat BoneRotation = OriginalTransform.GetRotation();
             if (bUnrotateRootBone && BoneIdx == 0 /* BoneIdx == 0: root bone */)
@@ -156,7 +159,7 @@ void UAAU_AnimModifier::ModifyAnimation_Internal(UObject* Object, float Scale, b
                 BoneRotation = RotationQuat * BoneRotation;
             }
 
-            PositionalKeys.Add(ScaledBoneLocation);
+            PositionalKeys.Add(BoneLocation);
             RotationalKeys.Add(BoneRotation);
             ScalingKeys.Add(OriginalTransform.GetScale3D());
 
@@ -168,7 +171,7 @@ void UAAU_AnimModifier::ModifyAnimation_Internal(UObject* Object, float Scale, b
                 * ChildTransformInOuterParentSpace = ChildLocalTransform * ParentTransform;
                 */
                 ComponentRelativeStart[KeyIdx] = UKismetMathLibrary::ComposeTransforms(
-                    FTransform(BoneRotation, ScaledBoneLocation, OriginalTransform.GetScale3D()),
+                    FTransform(BoneRotation, BoneLocation, OriginalTransform.GetScale3D()),
                     ComponentRelativeStart[KeyIdx]
                 );
             }
