@@ -19,5 +19,5 @@ public:
 	void ModifyAnimation(float Scale = 1.f, bool bUnrotateRootBone = false, UPARAM(DisplayName = "jx_c_start Bone Relative Motion") bool bStart = false);
 
 protected:
-	void ModifyAnimation_Internal(UObject* Object, float Scale, bool bUnrotateRootBone, bool bStart);
+	void ModifySingleAnimation(UObject* Object, float Scale, bool bUnrotateRootBone, bool bStart);
 };

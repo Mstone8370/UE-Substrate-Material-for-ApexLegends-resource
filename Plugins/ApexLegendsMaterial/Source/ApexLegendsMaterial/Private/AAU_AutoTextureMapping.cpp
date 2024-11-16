@@ -132,7 +132,15 @@ void UAAU_AutoTextureMapping::AutoTextureMapping(FString TextureFolderNameOverri
     {
         Obj->PreEditChange(nullptr);
         Obj->Modify();
+
         SetMaterialInstances(Obj, MaterialMap);
+
+        Obj->PostEditChange();
+
+        // Save object
+        const FString ObjectPath = Obj->GetPathName();
+        const FString FilePath = FPaths::GetBaseFilename(ObjectPath, false);
+        UEditorAssetLibrary::SaveAsset(FilePath, false);
     }
 
     // Gather texture paths
@@ -142,12 +150,6 @@ void UAAU_AutoTextureMapping::AutoTextureMapping(FString TextureFolderNameOverri
     
     // Read Texture and connect to Material Instance
     MapTexturesToMaterial(MaterialMap, TexturePaths, bFlipNormalGreen);
-
-    // Update Mesh Object
-    for (UObject* Obj : SelectedObjects)
-    {
-        Obj->PostEditChange();
-    }
 }
 
 bool UAAU_AutoTextureMapping::CheckMasterMaterial()
@@ -177,11 +179,6 @@ void UAAU_AutoTextureMapping::SetMaterialInstances(UObject* MeshObject, TMap<FSt
     {
         SetMaterialInstances_StaticMesh(StaticMesh, OutMaterialMap);
     }
-
-    // Save Mesh
-    const FString ObjectPath = MeshObject->GetPathName();
-    const FString FilePath = FPaths::GetBaseFilename(ObjectPath, false);
-    UEditorAssetLibrary::SaveAsset(FilePath, false);
 }
 
 void UAAU_AutoTextureMapping::SetMaterialInstances_SkeletalMesh(USkeletalMesh* SkeletalMesh, TMap<FString, TArray<UMaterialInstance*>>& OutMaterialMap)

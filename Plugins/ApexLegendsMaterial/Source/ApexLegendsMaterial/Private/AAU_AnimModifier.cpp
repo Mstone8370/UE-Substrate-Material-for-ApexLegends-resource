@@ -42,6 +42,7 @@ void UAAU_AnimModifier::ModifyAnimation(float Scale, bool bUnrotateRootBone, boo
 
         const FString ModifiedFileName = FileName + FString(TEXT("_Modified"));
         
+        // Try to duplicate object
         int32 DuplicateTryMax = 999;
         UObject* DuplicatedObject = nullptr;
         for (int32 DuplicateTry = 0; DuplicateTry < DuplicateTryMax; DuplicateTry++)
@@ -64,7 +65,7 @@ void UAAU_AnimModifier::ModifyAnimation(float Scale, bool bUnrotateRootBone, boo
         {
             FAssetRegistryModule::AssetCreated(DuplicatedObject);
 
-            ModifyAnimation_Internal(DuplicatedObject, Scale, bUnrotateRootBone, bStart);
+            ModifySingleAnimation(DuplicatedObject, Scale, bUnrotateRootBone, bStart);
 
             const FString DuplicatedObjectPath = DuplicatedObject->GetPathName();
             const FString DuplicatedFilePath = FPaths::GetBaseFilename(DuplicatedObjectPath, false);
@@ -82,7 +83,7 @@ void UAAU_AnimModifier::ModifyAnimation(float Scale, bool bUnrotateRootBone, boo
     }
 }
 
-void UAAU_AnimModifier::ModifyAnimation_Internal(UObject* Object, float Scale, bool bUnrotateRootBone, bool bStart)
+void UAAU_AnimModifier::ModifySingleAnimation(UObject* Object, float Scale, bool bUnrotateRootBone, bool bStart)
 {
     UAnimSequence* AnimSeq = Cast<UAnimSequence>(Object);
     if (!AnimSeq)
@@ -93,7 +94,7 @@ void UAAU_AnimModifier::ModifyAnimation_Internal(UObject* Object, float Scale, b
     AnimSeq->PreEditChange(nullptr);
     AnimSeq->Modify();
 
-    // Get base pose info
+    // Get reference pose info
     const USkeleton* Skeleton = AnimSeq->GetSkeleton();
     const TArray<FTransform>& RefBonePose = Skeleton->GetReferenceSkeleton().GetRawRefBonePose();
     const TArray<FMeshBoneInfo>& RefBoneInfo = Skeleton->GetReferenceSkeleton().GetRawRefBoneInfo();
@@ -112,7 +113,7 @@ void UAAU_AnimModifier::ModifyAnimation_Internal(UObject* Object, float Scale, b
     FScopedSlowTask ProgressDialog(BoneNum, FText::FromString(FString("Modifying Animation...")));
     ProgressDialog.MakeDialog();
 
-    // Start
+    // for bStart flag
     TArray<FTransform> ComponentRelativeStart;
     if (bStart)
     {
@@ -122,6 +123,7 @@ void UAAU_AnimModifier::ModifyAnimation_Internal(UObject* Object, float Scale, b
         }
     }
 
+    // Iterate bones
     for (int32 BoneIdx = 0; BoneIdx < BoneNum; BoneIdx++)
     {
         const FName& BoneName = RefBoneInfo[BoneIdx].Name;
@@ -143,6 +145,7 @@ void UAAU_AnimModifier::ModifyAnimation_Internal(UObject* Object, float Scale, b
             FVector BoneLocation = OriginalTransform.GetLocation();
             if (!FMath::IsNearlyEqual(Scale, 1.f))
             {
+                // Scale the travel distance based on the reference bone's location.
                 const FVector RefBoneLocation = RefBoneTransform.GetLocation();
                 const FVector AnimBoneLocation = BoneLocation;
 
@@ -196,6 +199,8 @@ void UAAU_AnimModifier::ModifyAnimation_Internal(UObject* Object, float Scale, b
 
         for (int32 KeyIdx = 0; KeyIdx < KeyNum; KeyIdx++)
         {
+            // Translate first, then rotate around the origin
+
             FVector RootTranslation = RootTrack[KeyIdx].GetLocation() - ComponentRelativeStart[KeyIdx].GetLocation();
 
             const FQuat RotationQuat = ComponentRelativeStart[KeyIdx].GetRotation().GetAxisX().ToOrientationQuat().Inverse();
