@@ -70,6 +70,9 @@ void UAAU_AutoTextureMapping::DisconnectAllMaterials()
             continue;
         }
 
+        SelectedObject->PreEditChange(nullptr);
+        SelectedObject->Modify();
+
         if (USkeletalMesh* SK = Cast<USkeletalMesh>(SelectedObject))
         {
             TArray<FSkeletalMaterial>& Materials = SK->GetMaterials();
@@ -127,6 +130,8 @@ void UAAU_AutoTextureMapping::AutoTextureMapping(FString TextureFolderNameOverri
     TMap<FString, TArray<UMaterialInstance*>> MaterialMap;  // key: Material Slot Name, Value: Array of Material Instances
     for (UObject* Obj : SelectedObjects)
     {
+        Obj->PreEditChange(nullptr);
+        Obj->Modify();
         SetMaterialInstances(Obj, MaterialMap);
     }
 
@@ -290,6 +295,9 @@ UMaterialInstance* UAAU_AutoTextureMapping::CastOrFindOrCreateMaterialInstance(U
         }
     }
 
+    MaterialInstance->PreEditChange(nullptr);
+    MaterialInstance->Modify();
+
     return MaterialInstance;
 }
 
@@ -391,6 +399,9 @@ void UAAU_AutoTextureMapping::MapTexturesToMaterial(TMap<FString, TArray<UMateri
         UTexture2D* Texture = Cast<UTexture2D>(UEditorAssetLibrary::LoadAsset(TexturePath));
         if (LinearTextureTypes.Contains(TextureType))
         {
+            Texture->PreEditChange(nullptr);
+            Texture->Modify();
+
             Texture->SRGB = 0;
             if (TextureType == TEXT("normalTexture") || TextureType == TEXT("nml"))
             {
@@ -405,6 +416,7 @@ void UAAU_AutoTextureMapping::MapTexturesToMaterial(TMap<FString, TArray<UMateri
             }
 
             // Update and save texture
+            Texture->PostEditChange();
             Texture->UpdateResource();
             UEditorAssetLibrary::SaveAsset(TexturePath, false);
         }

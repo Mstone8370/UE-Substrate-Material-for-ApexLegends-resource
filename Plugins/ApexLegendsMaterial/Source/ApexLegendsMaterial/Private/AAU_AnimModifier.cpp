@@ -90,6 +90,9 @@ void UAAU_AnimModifier::ModifyAnimation_Internal(UObject* Object, float Scale, b
         return;
     }
 
+    AnimSeq->PreEditChange(nullptr);
+    AnimSeq->Modify();
+
     // Get base pose info
     const USkeleton* Skeleton = AnimSeq->GetSkeleton();
     const TArray<FTransform>& RefBonePose = Skeleton->GetReferenceSkeleton().GetRawRefBonePose();
