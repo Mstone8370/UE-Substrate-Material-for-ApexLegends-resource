@@ -36,7 +36,7 @@ protected:
     
 	UMaterialInstance* CastOrFindOrCreateMaterialInstance(UMaterialInterface*& MaterialInterface, const FString& BasePath, const FString& MaterialSlotName, UMaterialInterface* ParentMaterial);
 
-	// Create new Material Instance asset
+    // Create new Material Instance asset
 	UMaterialInstanceConstant* CreateMaterialInstance(UMaterialInterface* ParentMaterial, FString FullPath);
 
     // Get all texture asset's path
