@@ -30,22 +30,22 @@ protected:
 	// Read Mesh's materials info, find existing Material Instance or create new Material Instance, and set.
 	void SetMaterialInstances(UObject* MeshObject, TMap<FString, TArray<UMaterialInstance*>>& OutMaterialNameMap);
 
-    // Template function for mesh types
-    template<typename MeshType, typename MaterialType>
-    void SetMaterialInstances_Generic(MeshType* Mesh, TMap<FString, TArray<UMaterialInstance*>>& OutMaterialMap, TArray<MaterialType>& (MeshType::* GetMaterialsFunc)());
+	// Template function for mesh types
+	template<typename MeshType, typename MaterialType>
+	void SetMaterialInstances_Generic(MeshType* Mesh, TMap<FString, TArray<UMaterialInstance*>>& OutMaterialMap, TArray<MaterialType>& (MeshType::* GetMaterialsFunc)());
     
 	UMaterialInstance* CastOrFindOrCreateMaterialInstance(UMaterialInterface*& MaterialInterface, const FString& BasePath, const FString& MaterialSlotName, UMaterialInterface* ParentMaterial);
 
-    // Create new Material Instance asset
+	// Create new Material Instance asset
 	UMaterialInstanceConstant* CreateMaterialInstance(UMaterialInterface* ParentMaterial, FString FullPath);
 
-    // Get all texture asset's path
+	// Get all texture asset's path
 	void GetTexturePaths(TSet<UObject*> Objects, const FString& TextureFolderName, TSet<FString>& OutPaths);
 
-    // Texture mapping
+	// Texture mapping
 	void MapTexturesToMaterial(TMap<FString, TArray<UMaterialInstance*>>& InMaterialMap, TSet<FString>& InTexturePaths, bool bFlipNormalGreen);
 
-    // Helper function to set parameters of a material instance
+	// Helper function to set parameters of a material instance
 	void SetMaterialParamValue(UMaterialInstance* MatInst, const FName& ParamName, FMaterialParameterValue ParamValue);
 
 	UPROPERTY(EditAnywhere, Category = "AutoTextureMapping Setup")
