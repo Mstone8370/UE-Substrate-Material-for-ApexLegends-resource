@@ -45,6 +45,9 @@ protected:
 	// Texture mapping
 	void MapTexturesToMaterial(TMap<FString, TArray<UMaterialInstance*>>& InMaterialMap, TSet<FString>& InTexturePaths, bool bFlipNormalGreen);
 
+    // Returns True if Texture is edited
+    bool EditTextureByParamName(UTexture2D* Texture, const FName& ParamName, bool bFlipNormalGreen);
+
 	// Helper function to set parameters of a material instance
 	void SetMaterialParamValue(UMaterialInstance* MatInst, const FName& ParamName, FMaterialParameterValue ParamValue);
 
@@ -63,7 +66,13 @@ protected:
 	TMap<FString, FName> TextureTypeToParamName;
 
 	UPROPERTY(EditAnywhere, Category = "AutoTextureMapping Setup")
-	TSet<FString> LinearTextureTypes;
+	TSet<FName> LinearParamNames;
+
+    UPROPERTY(EditAnywhere, Category = "AutoTextureMapping Setup")
+    FName NormalMapParamName;
+
+    UPROPERTY(EditAnywhere, Category = "AutoTextureMapping Setup")
+    FName AnisotropyMapParamName;
 
 private:
 	UPROPERTY()

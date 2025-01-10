@@ -17,6 +17,8 @@ UAAU_AutoTextureMapping::UAAU_AutoTextureMapping()
     : DefaultTextureFolderName(TEXT("Textures"))
     , DefaultMasterMaterialPath(TEXT("/ApexLegendsMaterial/Materials/M_Master"))
     , MasterMaterialOverride(nullptr)
+    , NormalMapParamName(TEXT("Normal"))
+    , AnisotropyMapParamName(TEXT("Anisotropy"))
 {
     // CustomMaterialMap
     CustomMaterialMap.Empty();
@@ -34,6 +36,7 @@ UAAU_AutoTextureMapping::UAAU_AutoTextureMapping()
     TextureTypeToParamName.Add(TEXT("scatterThicknessTexture"), FName("ScatterThickness"));
     TextureTypeToParamName.Add(TEXT("specTexture"), FName("Specular"));
     TextureTypeToParamName.Add(TEXT("anisoSpecDirTexture"), FName("Anisotropy"));
+    TextureTypeToParamName.Add(TEXT("emissiveMultiplyTexture"), FName("EmissiveMultiply"));
     TextureTypeToParamName.Add(TEXT("ao"), FName("AO"));
     TextureTypeToParamName.Add(TEXT("col"), FName("Albedo"));
     TextureTypeToParamName.Add(TEXT("cvt"), FName("Cavity"));
@@ -42,21 +45,20 @@ UAAU_AutoTextureMapping::UAAU_AutoTextureMapping()
     TextureTypeToParamName.Add(TEXT("nml"), FName("Normal"));
     TextureTypeToParamName.Add(TEXT("opa"), FName("Opacity"));
     TextureTypeToParamName.Add(TEXT("spc"), FName("Specular"));
+    TextureTypeToParamName.Add(TEXT("thk"), FName("ScatterThickness"));
+    TextureTypeToParamName.Add(TEXT("msk"), FName("Opacity"));
+    TextureTypeToParamName.Add(TEXT("ehm"), FName("EmissiveMultiply"));
+    TextureTypeToParamName.Add(TEXT("ehl"), FName("Emissive"));
+    TextureTypeToParamName.Add(TEXT("cav"), FName("Cavity"));
+    TextureTypeToParamName.Add(TEXT("asd"), FName("Anisotropy"));
 
-    // LinearTextureTypes
-    LinearTextureTypes.Empty();
+    // LinearParamNames
+    LinearParamNames.Empty();
 
-    LinearTextureTypes.Add(TEXT("aoTexture"));
-    LinearTextureTypes.Add(TEXT("opacityMultiplyTexture"));
-    LinearTextureTypes.Add(TEXT("cavityTexture"));
-    LinearTextureTypes.Add(TEXT("glossTexture"));
-    LinearTextureTypes.Add(TEXT("normalTexture"));
-    LinearTextureTypes.Add(TEXT("anisoSpecDirTexture"));
-    LinearTextureTypes.Add(TEXT("ao"));
-    LinearTextureTypes.Add(TEXT("cvt"));
-    LinearTextureTypes.Add(TEXT("gls"));
-    LinearTextureTypes.Add(TEXT("nml"));
-    LinearTextureTypes.Add(TEXT("opa"));
+    LinearParamNames.Add(TEXT("AO"));
+    LinearParamNames.Add(TEXT("Opacity"));
+    LinearParamNames.Add(TEXT("Cavity"));
+    LinearParamNames.Add(TEXT("Gloss"));
 }
 
 void UAAU_AutoTextureMapping::DisconnectAllMaterials()
@@ -310,28 +312,10 @@ void UAAU_AutoTextureMapping::MapTexturesToMaterial(TMap<FString, TArray<UMateri
 
         // Load Texture
         UTexture2D* Texture = Cast<UTexture2D>(UEditorAssetLibrary::LoadAsset(TexturePath));
-        if (LinearTextureTypes.Contains(TextureType))
+        if (!Texture)
         {
-            Texture->PreEditChange(nullptr);
-            Texture->Modify();
-
-            Texture->SRGB = 0;
-            if (TextureType == TEXT("normalTexture") || TextureType == TEXT("nml"))
-            {
-                Texture->LODGroup = TextureGroup::TEXTUREGROUP_WorldNormalMap;
-                Texture->CompressionSettings = TextureCompressionSettings::TC_Normalmap;
-                Texture->bFlipGreenChannel = bFlipNormalGreen;
-            }
-            if (TextureType == TEXT("anisoSpecDirTexture"))
-            {
-                Texture->Filter = TextureFilter::TF_Nearest;
-                Texture->CompressionSettings = TextureCompressionSettings::TC_BC7;
-            }
-
-            // Update and save texture
-            Texture->PostEditChange();
-            Texture->UpdateResource();
-            UEditorAssetLibrary::SaveAsset(TexturePath, false);
+            UE_LOG(LogTemp, Error, TEXT("[AutoTextureMapping] Failed to load Texture: %s"), *TexturePath);
+            continue;
         }
 
         // Set Material Instance Texture Parameter
@@ -340,6 +324,14 @@ void UAAU_AutoTextureMapping::MapTexturesToMaterial(TMap<FString, TArray<UMateri
         {
             UE_LOG(LogTemp, Warning, TEXT("[AutoTextureMapping] Unknown Texture Type: %s"), *TexturePath);
             continue;
+        }
+
+        if (EditTextureByParamName(Texture, *ParamName, bFlipNormalGreen))
+        {
+            // Update and save texture
+            Texture->PostEditChange();
+            Texture->UpdateResource();
+            UEditorAssetLibrary::SaveAsset(TexturePath, false);
         }
 
         TArray<UMaterialInstance*> MaterialInstances = *InMaterialMap.Find(MaterialSlotName); // The existence of MaterialSlotName has already been checked above
@@ -367,6 +359,49 @@ void UAAU_AutoTextureMapping::MapTexturesToMaterial(TMap<FString, TArray<UMateri
             UEditorAssetLibrary::SaveAsset(FPaths::GetBaseFilename(PathName, false), false);
         }
     }
+}
+
+bool UAAU_AutoTextureMapping::EditTextureByParamName(UTexture2D* Texture, const FName& ParamName, bool bFlipNormalGreen)
+{
+    bool bEdited = false;
+
+    if (LinearParamNames.Contains(ParamName))
+    {
+        bEdited = true;
+        Texture->PreEditChange(nullptr);
+        Texture->Modify();
+
+        Texture->SRGB = 0;
+    }
+    if (ParamName.IsEqual(NormalMapParamName))
+    {
+        if (!bEdited)
+        {
+            bEdited = true;
+            Texture->PreEditChange(nullptr);
+            Texture->Modify();
+        }
+
+        Texture->SRGB = 0;
+        Texture->LODGroup = TextureGroup::TEXTUREGROUP_WorldNormalMap;
+        Texture->CompressionSettings = TextureCompressionSettings::TC_Normalmap;
+        Texture->bFlipGreenChannel = bFlipNormalGreen;
+    }
+    if (ParamName.IsEqual(AnisotropyMapParamName))
+    {
+        if (!bEdited)
+        {
+            bEdited = true;
+            Texture->PreEditChange(nullptr);
+            Texture->Modify();
+        }
+
+        Texture->SRGB = 0;
+        Texture->Filter = TextureFilter::TF_Nearest;
+        Texture->CompressionSettings = TextureCompressionSettings::TC_BC7;
+    }
+
+    return bEdited;
 }
 
 void UAAU_AutoTextureMapping::SetMaterialParamValue(UMaterialInstance* MatInst, const FName& ParamName, FMaterialParameterValue ParamValue)
