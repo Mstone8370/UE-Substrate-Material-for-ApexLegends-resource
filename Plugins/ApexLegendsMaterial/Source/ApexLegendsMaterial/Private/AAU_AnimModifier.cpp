@@ -18,7 +18,7 @@ void UAAU_AnimModifier::ModifyAnimation(float Scale, bool bUnrotateRootBone, boo
 {
     if (Scale < UE_SMALL_NUMBER)
     {
-        Scale = 1.f;
+        Scale = 0.f;
     }
 
     if (FMath::IsNearlyEqual(Scale, 1.f) && !bUnrotateRootBone && !bStart)
