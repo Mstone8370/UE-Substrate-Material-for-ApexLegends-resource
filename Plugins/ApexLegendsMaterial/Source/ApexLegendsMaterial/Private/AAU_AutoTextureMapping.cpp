@@ -288,7 +288,7 @@ void UAAU_AutoTextureMapping::MapTexturesToMaterial(TMap<FString, TArray<UMateri
         {
             continue;
         }
-        if (TextureName.StartsWith(TEXT("T_")))
+        if (TextureName.StartsWith(TEXT("T_"), ESearchCase::CaseSensitive))
         {
             TextureName = TextureName.RightChop(2);
         }

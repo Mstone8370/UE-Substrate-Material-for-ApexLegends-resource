@@ -208,11 +208,19 @@ void UEUW_EditorWidget::OpenATM()
     }
 }
 
-void UEUW_EditorWidget::ModifyAnimation(float Scale, bool bUnrotateRootBone, bool bStart)
+void UEUW_EditorWidget::ModifyAnimation(float Scale, bool bUnrotateRootBone, bool bStart, FString StartBoneName)
 {
     if (GetAM())
     {
-        GetAM()->ModifyAnimation(Scale, bUnrotateRootBone, bStart);
+        StartBoneName.TrimStartAndEndInline();
+        if (StartBoneName.IsEmpty())
+        {
+            GetAM()->ModifyAnimation(Scale, bUnrotateRootBone, bStart);
+        }
+        else
+        {
+            GetAM()->ModifyAnimation(Scale, bUnrotateRootBone, bStart, FName(StartBoneName));
+        }
     }
     else
     {

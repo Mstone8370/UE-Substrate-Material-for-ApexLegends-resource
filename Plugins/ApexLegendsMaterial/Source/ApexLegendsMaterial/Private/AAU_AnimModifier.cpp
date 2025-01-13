@@ -14,7 +14,7 @@
 
 #include "Kismet/KismetMathLibrary.h"
 
-void UAAU_AnimModifier::ModifyAnimation(float Scale, bool bUnrotateRootBone, bool bStart)
+void UAAU_AnimModifier::ModifyAnimation(float Scale, bool bUnrotateRootBone, bool bStart, FName StartBoneName)
 {
     if (Scale < UE_SMALL_NUMBER)
     {
@@ -65,7 +65,7 @@ void UAAU_AnimModifier::ModifyAnimation(float Scale, bool bUnrotateRootBone, boo
         {
             FAssetRegistryModule::AssetCreated(DuplicatedObject);
 
-            ModifySingleAnimation(DuplicatedObject, Scale, bUnrotateRootBone, bStart);
+            ModifySingleAnimation(DuplicatedObject, Scale, bUnrotateRootBone, bStart, StartBoneName);
 
             const FString DuplicatedObjectPath = DuplicatedObject->GetPathName();
             const FString DuplicatedFilePath = FPaths::GetBaseFilename(DuplicatedObjectPath, false);
@@ -83,7 +83,7 @@ void UAAU_AnimModifier::ModifyAnimation(float Scale, bool bUnrotateRootBone, boo
     }
 }
 
-void UAAU_AnimModifier::ModifySingleAnimation(UObject* Object, float Scale, bool bUnrotateRootBone, bool bStart)
+void UAAU_AnimModifier::ModifySingleAnimation(UObject* Object, float Scale, bool bUnrotateRootBone, bool bStart, FName StartBoneName)
 {
     UAnimSequence* AnimSeq = Cast<UAnimSequence>(Object);
     if (!AnimSeq)
@@ -91,47 +91,88 @@ void UAAU_AnimModifier::ModifySingleAnimation(UObject* Object, float Scale, bool
         return;
     }
 
-    AnimSeq->PreEditChange(nullptr);
-    AnimSeq->Modify();
-
     // Get reference pose info
     const USkeleton* Skeleton = AnimSeq->GetSkeleton();
-    const TArray<FTransform>& RefBonePose = Skeleton->GetReferenceSkeleton().GetRawRefBonePose();
-    const TArray<FMeshBoneInfo>& RefBoneInfo = Skeleton->GetReferenceSkeleton().GetRawRefBoneInfo();
-    const int32 BoneNum = RefBonePose.Num();
-    if (BoneNum < 1)
+    FAnimModData AnimModData(
+        Skeleton->GetReferenceSkeleton().GetRawRefBonePose(),
+        Skeleton->GetReferenceSkeleton().GetRawRefBoneInfo(),
+        AnimSeq->GetDataModel(),
+        AnimSeq->GetController()
+    );
+    if (!AnimModData.DataModel)
     {
+        UE_LOG(LogTemp, Error, TEXT("Animation Data Model is not valid: %s"), *Object->GetPathName());
         return;
     }
 
-    const IAnimationDataModel* AnimDataModel = AnimSeq->GetDataModel();
-    IAnimationDataController& AnimDataController = AnimSeq->GetController();
+    AnimSeq->PreEditChange(nullptr);
+    AnimSeq->Modify();
 
-    const int32 KeyNum = AnimDataModel->GetNumberOfKeys();
+    if (!FMath::IsNearlyEqual(Scale, 1.f))
+    {
+        ScaleAnimation(Scale, AnimModData);
+    }
 
-    // Show Dialog
-    FScopedSlowTask ProgressDialog(BoneNum, FText::FromString(FString("Modifying Animation...")));
-    ProgressDialog.MakeDialog();
-
-    // for bStart flag
-    TArray<FTransform> ComponentRelativeStart;
     if (bStart)
     {
-        for (int32 KeyIdx = 0; KeyIdx < KeyNum; KeyIdx++)
+        // Find the Start bone
+        int32 StartBoneIdx = INDEX_NONE;
+        const int32 BoneNum = AnimModData.RefBonePose.Num();
+        for (int32 BoneIdx = 0; BoneIdx < BoneNum; BoneIdx++)
         {
-            ComponentRelativeStart.Add(FTransform::Identity);
+            const FName& BoneName = AnimModData.RefBoneInfo[BoneIdx].Name;
+            if (BoneName.IsEqual(StartBoneName))
+            {
+                StartBoneIdx = BoneIdx;
+                break;
+            }
+        }
+
+        if (StartBoneIdx != INDEX_NONE && StartBoneIdx < BoneNum)
+        {
+            MakeStartBoneRelative(StartBoneIdx, AnimModData);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("[Animation Modifier] Could not find the [%s] bone."), *StartBoneName.ToString());
+            FMessageDialog::Open(
+                EAppMsgType::Ok,
+                FText::FromString(TEXT("[Warning]\nAnimation Modifier:\n  Start bone relative motion\n\n\nCould not find the [" + StartBoneName.ToString() + "] bone.")),
+                FText::FromString(TEXT("Warning"))
+            );
         }
     }
+
+    if (bUnrotateRootBone)
+    {
+        UnrotateRootBone(AnimModData);
+    }
+
+    AnimSeq->PostEditChange();
+    AnimSeq->MarkPackageDirty();
+}
+
+void UAAU_AnimModifier::ScaleAnimation(float Scale, FAnimModData& AnimModData)
+{
+    const int32 BoneNum = AnimModData.RefBonePose.Num();
+
+    // Show Dialog
+    FScopedSlowTask ProgressDialog(BoneNum, FText::FromString(FString("Scaling Animation...")));
+    ProgressDialog.MakeDialog();
 
     // Iterate bones
     for (int32 BoneIdx = 0; BoneIdx < BoneNum; BoneIdx++)
     {
-        const FName& BoneName = RefBoneInfo[BoneIdx].Name;
-        const FTransform& RefBoneTransform = RefBonePose[BoneIdx];
+        ProgressDialog.EnterProgressFrame(1, FText::FromString(FString::Printf(TEXT("Scaling Animation... [%d/%d]"), BoneIdx + 1, BoneNum)));
+
+        const int32 KeyNum = AnimModData.DataModel->GetNumberOfKeys();
+        const FName& BoneName = AnimModData.RefBoneInfo[BoneIdx].Name;
+
+        const FVector& RefBoneLocation = AnimModData.RefBonePose[BoneIdx].GetLocation();
 
         // Get animation bone transforms
         TArray<FTransform> OriginalBoneTrack;
-        AnimDataModel->GetBoneTrackTransforms(BoneName, OriginalBoneTrack);
+        AnimModData.DataModel->GetBoneTrackTransforms(BoneName, OriginalBoneTrack);
 
         TArray<FVector> PositionalKeys;
         TArray<FQuat> RotationalKeys;
@@ -142,78 +183,128 @@ void UAAU_AnimModifier::ModifySingleAnimation(UObject* Object, float Scale, bool
         {
             const FTransform& OriginalTransform = OriginalBoneTrack[KeyIdx];
 
-            FVector BoneLocation = OriginalTransform.GetLocation();
-            if (!FMath::IsNearlyEqual(Scale, 1.f))
-            {
-                // Scale the travel distance based on the reference bone's location.
-                const FVector RefBoneLocation = RefBoneTransform.GetLocation();
-                const FVector AnimBoneLocation = BoneLocation;
+            // Scale the travel distance based on the reference bone's location.
+            const FVector& OriginalBoneLocation = OriginalTransform.GetLocation();
+            const FVector DeltaLocation = OriginalBoneLocation - RefBoneLocation;
+            const FVector ScaledBoneLocation = RefBoneLocation + (DeltaLocation * Scale);
 
-                const FVector DeltaLocation = AnimBoneLocation - RefBoneLocation;
-                const FVector ScaledBoneLocation = RefBoneLocation + (DeltaLocation * Scale);
-                
-                BoneLocation = ScaledBoneLocation;
-            }
-
-            FQuat BoneRotation = OriginalTransform.GetRotation();
-            if (bUnrotateRootBone && BoneIdx == 0 /* BoneIdx == 0: root bone */)
-            {
-                FQuat RotationQuat = FRotator(0.f, 0.f, -90.f).Quaternion();
-                BoneRotation = RotationQuat * BoneRotation;
-            }
-
-            PositionalKeys.Add(BoneLocation);
-            RotationalKeys.Add(BoneRotation);
+            PositionalKeys.Add(ScaledBoneLocation);
+            RotationalKeys.Add(OriginalTransform.GetRotation());
             ScalingKeys.Add(OriginalTransform.GetScale3D());
-
-            if (bStart && BoneIdx < 3 /* BoneIdx == 0: root bone, BoneIdx == 1: delta bone, BoneIdx == 2: start bone */)
-            {
-                /**
-                * Space transformation accumulation.
-                * UKismetMathLibrary::ComposeTransforms(A, B) == A * B.
-                * ChildTransformInOuterParentSpace = ChildLocalTransform * ParentTransform;
-                */
-                ComponentRelativeStart[KeyIdx] = UKismetMathLibrary::ComposeTransforms(
-                    FTransform(BoneRotation, BoneLocation, OriginalTransform.GetScale3D()),
-                    ComponentRelativeStart[KeyIdx]
-                );
-            }
         }
 
         // Set scale bone track keys
-        AnimDataController.SetBoneTrackKeys(BoneName, PositionalKeys, RotationalKeys, ScalingKeys);
+        AnimModData.DataController.SetBoneTrackKeys(BoneName, PositionalKeys, RotationalKeys, ScalingKeys);
+    }
+}
 
-        ProgressDialog.EnterProgressFrame(1, FText::FromString(FString::Printf(TEXT("Modifying Animation... [%d/%d]"), BoneIdx + 1, BoneNum)));
+void UAAU_AnimModifier::MakeStartBoneRelative(int32 StartBoneIdx, FAnimModData& AnimModData)
+{
+    const int32 KeyNum = AnimModData.DataModel->GetNumberOfKeys();
+
+    // Find the ancestors of the Start bone.
+    TArray<int32> StartToRootIndeces;
+    int32 Idx = StartBoneIdx;
+    while (Idx != INDEX_NONE)
+    {
+        StartToRootIndeces.Add(Idx);
+        Idx = AnimModData.RefBoneInfo[Idx].ParentIndex;
     }
 
-    if (bStart)
+    // Show Dialog
+    FScopedSlowTask ProgressDialog(StartToRootIndeces.Num() + 1, FText::FromString(FString("Converting to Start bone relative...")));
+    ProgressDialog.MakeDialog();
+
+    TArray<FTransform> ComponentRelativeStart;
+    for (int32 KeyIdx = 0; KeyIdx < KeyNum; KeyIdx++)
     {
-        const FName& RootBoneName = RefBoneInfo[0].Name;
+        ComponentRelativeStart.Add(FTransform::Identity);
+    }
 
-        TArray<FTransform> RootTrack;
-        AnimDataModel->GetBoneTrackTransforms(RootBoneName, RootTrack);
+    int32 ProgressCnt = 0; // for ProgressDialog
 
-        TArray<FVector> PositionalKeys;
-        TArray<FQuat> RotationalKeys;
-        TArray<FVector> ScalingKeys;
+    // Space transformation accumulation.
+    for (auto it = StartToRootIndeces.rbegin(); it != StartToRootIndeces.rend(); ++it)
+    {
+        ProgressDialog.EnterProgressFrame(1, FText::FromString(FString::Printf(TEXT("Converting to Start bone relative... [%d/%d]"), ++ProgressCnt, StartToRootIndeces.Num() + 1)));
+
+        const FName& BoneName = AnimModData.RefBoneInfo[*it].Name;
+
+        TArray<FTransform> BoneTrack;
+        AnimModData.DataModel->GetBoneTrackTransforms(BoneName, BoneTrack);
 
         for (int32 KeyIdx = 0; KeyIdx < KeyNum; KeyIdx++)
         {
-            // Translate first, then rotate around the origin
+            const FTransform& BoneTransform = BoneTrack[KeyIdx];
 
-            FVector RootTranslation = RootTrack[KeyIdx].GetLocation() - ComponentRelativeStart[KeyIdx].GetLocation();
-
-            const FQuat RotationQuat = ComponentRelativeStart[KeyIdx].GetRotation().GetAxisX().ToOrientationQuat().Inverse();
-            RootTranslation = RotationQuat.RotateVector(RootTranslation);
-
-            PositionalKeys.Add(RootTranslation);
-            RotationalKeys.Add(RotationQuat * RootTrack[KeyIdx].GetRotation());
-            ScalingKeys.Add(RootTrack[KeyIdx].GetScale3D());
+            /**
+            * UKismetMathLibrary::ComposeTransforms(A, B) == A * B.
+            * ChildTransformInOuterParentSpace = ChildLocalTransform * ParentTransform;
+            */
+            ComponentRelativeStart[KeyIdx] = UKismetMathLibrary::ComposeTransforms(
+                BoneTransform,
+                ComponentRelativeStart[KeyIdx]
+            );
         }
-
-        AnimDataController.SetBoneTrackKeys(RootBoneName, PositionalKeys, RotationalKeys, ScalingKeys);
     }
 
-    AnimSeq->PostEditChange();
-    AnimSeq->MarkPackageDirty();
+    ProgressDialog.EnterProgressFrame(1, FText::FromString(FString::Printf(TEXT("Converting to Start bone relative... [%d/%d]"), ++ProgressCnt, StartToRootIndeces.Num() + 1)));
+
+    // Move the root bone to keep the Start bone fixed at the origin.
+    const FName& RootBoneName = AnimModData.RefBoneInfo[0].Name;
+
+    TArray<FTransform> RootTrack;
+    AnimModData.DataModel->GetBoneTrackTransforms(RootBoneName, RootTrack);
+
+    TArray<FVector> PositionalKeys;
+    TArray<FQuat> RotationalKeys;
+    TArray<FVector> ScalingKeys;
+
+    for (int32 KeyIdx = 0; KeyIdx < KeyNum; KeyIdx++)
+    {
+        // Translate first, then rotate around the origin
+
+        FVector RootTranslation = RootTrack[KeyIdx].GetLocation() - ComponentRelativeStart[KeyIdx].GetLocation();
+
+        const FQuat RotationQuat = ComponentRelativeStart[KeyIdx].GetRotation().GetAxisX().ToOrientationQuat().Inverse();
+        RootTranslation = RotationQuat.RotateVector(RootTranslation);
+
+        PositionalKeys.Add(RootTranslation);
+        RotationalKeys.Add(RotationQuat * RootTrack[KeyIdx].GetRotation());
+        ScalingKeys.Add(RootTrack[KeyIdx].GetScale3D());
+    }
+
+    AnimModData.DataController.SetBoneTrackKeys(RootBoneName, PositionalKeys, RotationalKeys, ScalingKeys);
+}
+
+void UAAU_AnimModifier::UnrotateRootBone(FAnimModData& AnimModData)
+{
+    const int32 KeyNum = AnimModData.DataModel->GetNumberOfKeys();
+    const FName& BoneName = AnimModData.RefBoneInfo[0].Name;
+
+    // Get animation bone transforms
+    TArray<FTransform> OriginalBoneTrack;
+    AnimModData.DataModel->GetBoneTrackTransforms(BoneName, OriginalBoneTrack);
+
+    TArray<FVector> PositionalKeys;
+    TArray<FQuat> RotationalKeys;
+    TArray<FVector> ScalingKeys;
+
+    for (int32 KeyIdx = 0; KeyIdx < KeyNum; KeyIdx++)
+    {
+        const FTransform& OriginalTransform = OriginalBoneTrack[KeyIdx];
+        const FQuat RotationQuat = FRotator(0.f, 0.f, 90.f).Quaternion();
+
+        FVector RootTranslation = OriginalBoneTrack[KeyIdx].GetLocation();
+        RootTranslation = RotationQuat.RotateVector(RootTranslation);
+        
+        FQuat RootRotation = OriginalTransform.GetRotation();
+        RootRotation = RotationQuat * RootRotation;
+
+        PositionalKeys.Add(RootTranslation);
+        RotationalKeys.Add(RootRotation);
+        ScalingKeys.Add(OriginalTransform.GetScale3D());
+    }
+
+    AnimModData.DataController.SetBoneTrackKeys(BoneName, PositionalKeys, RotationalKeys, ScalingKeys);
 }
