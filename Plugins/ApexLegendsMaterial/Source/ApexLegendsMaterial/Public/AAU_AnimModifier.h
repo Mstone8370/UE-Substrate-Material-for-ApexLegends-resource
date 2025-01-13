@@ -45,6 +45,8 @@ protected:
 
 	void ScaleAnimation(float Scale, FAnimModData& AnimModData);
 
+	int32 FindStartBoneIndex(const FName& StartBoneName, const FAnimModData& AnimModData);
+
 	void MakeStartBoneRelative(int32 StartBoneIdx, FAnimModData& AnimModData);
 
 	void UnrotateRootBone(FAnimModData& AnimModData);

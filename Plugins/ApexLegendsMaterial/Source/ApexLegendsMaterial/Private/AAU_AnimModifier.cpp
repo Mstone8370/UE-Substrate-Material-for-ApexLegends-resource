@@ -116,18 +116,8 @@ void UAAU_AnimModifier::ModifySingleAnimation(UObject* Object, float Scale, bool
     if (bStart)
     {
         // Find the Start bone
-        int32 StartBoneIdx = INDEX_NONE;
+        const int32 StartBoneIdx = FindStartBoneIndex(StartBoneName, AnimModData);
         const int32 BoneNum = AnimModData.RefBonePose.Num();
-        for (int32 BoneIdx = 0; BoneIdx < BoneNum; BoneIdx++)
-        {
-            const FName& BoneName = AnimModData.RefBoneInfo[BoneIdx].Name;
-            if (BoneName.IsEqual(StartBoneName))
-            {
-                StartBoneIdx = BoneIdx;
-                break;
-            }
-        }
-
         if (StartBoneIdx != INDEX_NONE && StartBoneIdx < BoneNum)
         {
             MakeStartBoneRelative(StartBoneIdx, AnimModData);
@@ -196,6 +186,21 @@ void UAAU_AnimModifier::ScaleAnimation(float Scale, FAnimModData& AnimModData)
         // Set scale bone track keys
         AnimModData.DataController.SetBoneTrackKeys(BoneName, PositionalKeys, RotationalKeys, ScalingKeys);
     }
+}
+
+int32 UAAU_AnimModifier::FindStartBoneIndex(const FName& StartBoneName, const FAnimModData& AnimModData)
+{
+    // Find the Start bone
+    const int32 BoneNum = AnimModData.RefBonePose.Num();
+    for (int32 BoneIdx = 0; BoneIdx < BoneNum; BoneIdx++)
+    {
+        const FName& BoneName = AnimModData.RefBoneInfo[BoneIdx].Name;
+        if (BoneName.IsEqual(StartBoneName))
+        {
+            return BoneIdx;
+        }
+    }
+    return INDEX_NONE;
 }
 
 void UAAU_AnimModifier::MakeStartBoneRelative(int32 StartBoneIdx, FAnimModData& AnimModData)
