@@ -42,9 +42,6 @@ This project's Unreal Engine version is ```5.5```
   * [Auto Texture Mapping setup](#auto-texture-mapping-setup)
   * [Demo](#demo)
 - [Issue Handling](#issue-handling)
-  * [Material issues](#material-issues)
-  * [Auto Texture Mapping tool issue](#auto-texture-mapping-tool-issue)
-  * [Movie Render Queue issue](#movie-render-queue-issue)
 - [Experimental Feature](#experimental-feature)
 
 # Installation
@@ -145,75 +142,7 @@ You can watch the demo of my workflow.
 
 # Issue Handling
 
-## Material issues
-
-* Pixelated Artifacts
-
-  If you find pixelated artifacts, the cause might be the alpha channel of the albedo texture.
-  
-  By default, the alpha channel of the albedo texture is used as an opacity mask, but there can be issues with some alpha channels.
-
-  Therefore, try unchecking the ```AlbedoAlphaAsOpacityMask``` setting in the Material Instance.
-
-  - Artifact example
-
-![opacity_prev](images/opacity_prev.png)
-
-  Alpha channel
-  
-![alpha_channel](images/alpha_channel.png)
-
-  Material Instance setting
-
-![opacity_setting](images/opacity_setting.png)
-
-  Result
-
-![opacity_after](images/opacity_after.png)
-
-* Hair Color
-
-  If the hair color appears as too dark, lower the ```CavityPow``` value in the Material Instance.
-
-  - Hair example
-
-![cavity_prev](images/cavity_prev.png)
-
-  CavityPow parameter in Material Instance
-
-![cavity_setting](images/cavity_setting.png)
-
-  Result
-
-![cavity_after](images/cavity_after.png)
-
-* Translucency Sorting Issue
-
-  When a single mesh has multiple translucent materials, priority sorting may not work correctly, causing the translucent material in the back to cover the one in the front.
-
-  In this case, enable the ```Enable Order Independent Transparency (Experimental)``` option in ```Project Settings``` under **Engine->Rendering->Translucency**.
-
-![order_setting](images/order_setting.png)
-
-  In the image below, the left side shows an example with sorting issues, and the right side shows the issue resolved using this option.
-
-![order_cmp](images/order_cmp.png)
-
-## Auto Texture Mapping tool issue
-
-  If the Auto Texture Mapping tool is not working and error logs are printed in the ```Output Log```, the reason might be an old reference issue.
-
-  Try deleting all Material Instances connected to the Skeletal Mesh, and in the content browser, right-click the current folder and select ```Update Redirector References``` to fix the old references.
-
-## Movie Render Queue issue
-
-  When using the Movie Render Queue, there could be an issue where shaders are compiled for every frame.
-
-  This issue can be caused by materials that fail to compile, and Substrate can be the cause of this issue.
-
-  If you find logs in the ```[project path]/Saved/Logs``` folder indicating that material compilation has failed, you will need to fix those materials.
-
-  If those problematic materials belong to an unused plugin, simply disabling that plugin may resolve the issue.
+Please check the [wiki page](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/wiki/Issue-Handling).
 
 # Experimental Feature
 
