@@ -37,7 +37,7 @@ protected:
 	UMaterialInstance* CastOrFindOrCreateMaterialInstance(UMaterialInterface*& MaterialInterface, const FString& BasePath, const FString& MaterialSlotName, UMaterialInterface* ParentMaterial);
 
 	// Create new Material Instance asset
-	UMaterialInstanceConstant* CreateMaterialInstance(UMaterialInterface* ParentMaterial, FString FullPath);
+	UMaterialInstanceConstant* CreateMaterialInstance(UMaterialInterface* ParentMaterial, const FString& FullPath);
 
 	// Get all texture asset's path
 	void GetTexturePaths(TSet<UObject*> Objects, const FString& TextureFolderName, TSet<FString>& OutPaths);
@@ -49,7 +49,7 @@ protected:
     bool EditTextureByParamName(UTexture2D* Texture, const FName& ParamName, bool bFlipNormalGreen);
 
 	// Helper function to set parameters of a material instance
-	void SetMaterialParamValue(UMaterialInstance* MatInst, const FName& ParamName, FMaterialParameterValue ParamValue);
+	void SetMaterialParamValue(UMaterialInstance* MatInst, const FName& ParamName, const FMaterialParameterValue& ParamValue) const;
 
 	UPROPERTY(EditAnywhere, Category = "AutoTextureMapping Setup")
 	FString DefaultTextureFolderName;

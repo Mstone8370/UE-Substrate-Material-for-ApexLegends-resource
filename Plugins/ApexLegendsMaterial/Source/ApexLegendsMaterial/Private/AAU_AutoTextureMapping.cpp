@@ -216,7 +216,7 @@ UMaterialInstance* UAAU_AutoTextureMapping::CastOrFindOrCreateMaterialInstance(U
     return MaterialInstance;
 }
 
-UMaterialInstanceConstant* UAAU_AutoTextureMapping::CreateMaterialInstance(UMaterialInterface* ParentMaterial, FString FullPath)
+UMaterialInstanceConstant* UAAU_AutoTextureMapping::CreateMaterialInstance(UMaterialInterface* ParentMaterial, const FString& FullPath)
 {
     UPackage* Package = CreatePackage(*FullPath);
     Package->FullyLoad();
@@ -296,11 +296,11 @@ void UAAU_AutoTextureMapping::MapTexturesToMaterial(TMap<FString, TArray<UMateri
         // Get Material name and Texture type from Texture file name
         FString MaterialSlotName = TextureName;
         FString TextureType = "";
-        int32 DelimeterIndex;
-        if (TextureName.FindLastChar('_', DelimeterIndex))
+        int32 DelimiterIndex;
+        if (TextureName.FindLastChar('_', DelimiterIndex))
         {
-            MaterialSlotName = TextureName.Left(DelimeterIndex);
-            TextureType = TextureName.RightChop(DelimeterIndex + 1);
+            MaterialSlotName = TextureName.Left(DelimiterIndex);
+            TextureType = TextureName.RightChop(DelimiterIndex + 1);
         }
 
         // Check if MaterialSlotName exists
@@ -404,7 +404,7 @@ bool UAAU_AutoTextureMapping::EditTextureByParamName(UTexture2D* Texture, const 
     return bEdited;
 }
 
-void UAAU_AutoTextureMapping::SetMaterialParamValue(UMaterialInstance* MatInst, const FName& ParamName, FMaterialParameterValue ParamValue)
+void UAAU_AutoTextureMapping::SetMaterialParamValue(UMaterialInstance* MatInst, const FName& ParamName, const FMaterialParameterValue& ParamValue) const
 {
     FMaterialInstanceParameterUpdateContext Context(MatInst);
     FMaterialParameterInfo ParamInfo(ParamName);
