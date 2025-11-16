@@ -11,10 +11,6 @@ A repository for an Unreal Engine plugin containing Substrate Materials for Apex
 # ***Important Notice***
 
 This project and plugin use ***Substrate***, so you must enable Substrate.
-Substrate is a **beta-stage feature** that completely replaces the existing Material system but does not guarantee compatibility.
-Therefore, it is recommended not to use this plugin in ongoing projects.
-
-If you really want to use it in an ongoing project, duplicate the project first to create a backup.
 
 Substrate can be enabled in the ```Project Settings``` under **Engine->Rendering->Substrate**.
 
@@ -28,7 +24,7 @@ You can access both the plugin's contents and my **PostProcessVolume** setup by 
 
 If you only want the plugin, it's recommended to download the zipped plugin file from the [release page](https://github.com/Mstone8370/UE-Substrate-Material-for-ApexLegends-resource/releases).
 
-This project's Unreal Engine version is ```5.5```
+This project's Unreal Engine version is ```5.7```
 
 # Table of Contents
 
